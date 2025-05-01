@@ -4,8 +4,14 @@
 @import 'prism-themes/themes/prism-vsc-dark-plus.css';
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light mode: Keep a light base but maybe slightly off-white? */
+  --background: #f8fafc; /* cool gray 50 */
+  --foreground: #111827; /* gray 900 */
+
+  /* Define gradient stops using direct hex/rgb values */
+  /* Values from tailwind.config.ts: colors.purple[600] and colors.pink[500] */
+  --gradient-start: #9333ea;
+  --gradient-end: #ec4899;
 }
 
 @theme inline {
@@ -17,15 +23,25 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Dark mode: Use a very dark gray, not pure black */
+    --background: #1f2937; /* gray 800 */
+    --foreground: #f9fafb; /* gray 50 */
+
+    /* Override gradient stops for dark mode if needed, or use the same */
+    /* --gradient-start: #some_other_color; */
+    /* --gradient-end: #another_color; */
+    /* Keep the same gradient for dark mode for now */
+    --gradient-start: #9333ea;
+    --gradient-end: #ec4899;
   }
 }
 
 body {
-  background: var(--background);
+  /* Apply the vibrant gradient background */
+  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  background-attachment: fixed; /* Keep gradient fixed during scroll */
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans); /* Use the font variable from layout */
 }
 
 /* Add any other global styles or overrides here */

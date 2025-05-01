@@ -14,10 +14,10 @@ const SocialLink = ({ href, label, icon: Icon }: { href: string; label: string; 
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 dark:bg-gray-800">
+    <footer className="bg-black/10 dark:bg-black/30 backdrop-blur-sm mt-12">
       <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between sm:flex-row">
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400 sm:text-left">
+          <div className="text-center text-sm text-gray-700 dark:text-gray-300 sm:text-left">
             &copy; {new Date().getFullYear()} Akram Bakhouche. All rights reserved.
           </div>
           <div className="mt-4 flex space-x-6 sm:mt-0 sm:justify-start">

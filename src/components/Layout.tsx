@@ -4,25 +4,26 @@ import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-// import { usePathname } from "next/navigation"; // Import usePathname if needed for keying AnimatePresence
+import CursorGlow from "./CursorGlow";
+import { usePathname } from "next/navigation"; // Ensure pathname is imported
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  // const pathname = usePathname(); // Get current path if needed for AnimatePresence key
+  const pathname = usePathname(); // Get current path for AnimatePresence key
 
   return (
-    <div className="flex min-h-screen flex-col dark:bg-gray-950">
+    <div className="flex min-h-screen flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+      <CursorGlow />
       <Navbar />
       {/* AnimatePresence enables animations when components are added/removed */}
-      {/* Use `mode='wait'` if you want the exiting page to finish animating before the new one enters */}
-      {/* Keying AnimatePresence with pathname ensures transition triggers on route change */}
+      {/* key={pathname} ensures animation triggers on route change */}
       <AnimatePresence mode="wait">
         <motion.main
-          // key={pathname} // Use pathname as key if you want transitions between different routes
-          initial={{ opacity: 0, y: 20 }} // Initial state (invisible and slightly down)
-          animate={{ opacity: 1, y: 0 }} // Animate to (fully visible and at original position)
-          exit={{ opacity: 0, y: -20 }} // Exit state (fade out and slightly up)
-          transition={{ duration: 0.3 }} // Animation duration
-          className="container mx-auto flex-grow px-4 py-8 sm:px-6 lg:px-8"
+          key={pathname} // Use pathname as key for route transitions
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="flex-grow container mx-auto px-4 py-8" // Added padding and container
         >
           {children}
         </motion.main>
@@ -30,4 +31,4 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <Footer />
     </div>
   );
-} 
+}

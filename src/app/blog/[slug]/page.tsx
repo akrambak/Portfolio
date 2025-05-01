@@ -11,8 +11,8 @@ export async function generateStaticParams() {
 }
 
 // Generate metadata for the page
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const postData = await getPostData(params.slug);
+export async function generateMetadata({ params: { slug } }: { params: { slug: string } }): Promise<Metadata> {
+  const postData = await getPostData(slug);
   if (!postData) {
     return {
       title: 'Post Not Found',
@@ -35,8 +35,8 @@ function formatDate(dateString: string): string {
 }
 
 // The main page component
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const postData = await getPostData(params.slug);
+export default async function BlogPostPage({ params: { slug } }: { params: { slug: string } }) {
+  const postData = await getPostData(slug);
 
   if (!postData) {
     notFound(); // Trigger 404 if post doesn't exist

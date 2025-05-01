@@ -21,11 +21,11 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-md dark:bg-gray-900">
+    <nav className="sticky top-0 z-50 bg-white/30 dark:bg-gray-900/40 backdrop-blur-md shadow-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
+            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-accent-600 dark:hover:text-accent-400 transition-colors">
               Akram Bakhouche
             </Link>
           </div>
@@ -35,7 +35,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white transition-colors"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-800 hover:bg-white/50 hover:text-accent-600 dark:text-gray-200 dark:hover:bg-black/20 dark:hover:text-accent-400 transition-colors"
                 >
                   {link.label}
                 </Link>
@@ -48,7 +48,7 @@ export default function Navbar() {
             <button
               onClick={toggleMobileMenu}
               type="button"
-              className="ml-2 inline-flex items-center justify-center rounded-md bg-gray-100 p-2 text-gray-600 hover:bg-gray-200 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent-500 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+              className="ml-2 inline-flex items-center justify-center rounded-md bg-white/40 p-2 text-gray-700 hover:bg-white/60 hover:text-accent-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent-500 dark:bg-black/20 dark:text-gray-300 dark:hover:bg-black/40 dark:hover:text-accent-400 transition-colors"
               aria-controls="mobile-menu"
               aria-expanded={isMobileMenuOpen}
             >
@@ -88,14 +88,14 @@ export default function Navbar() {
         </div>
       </div>
 
-      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden`} id="mobile-menu">
+      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-white/50 dark:bg-gray-800/60 backdrop-blur-sm`} id="mobile-menu">
         <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+              className="block rounded-md px-3 py-2 text-base font-medium text-gray-800 hover:bg-white/70 hover:text-accent-600 dark:text-gray-200 dark:hover:bg-black/30 dark:hover:text-accent-400 transition-colors"
             >
               {link.label}
             </Link>
