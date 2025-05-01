@@ -41,8 +41,14 @@ export default function ContactForm() {
 
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      let errorMessage = 'An unexpected error occurred.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      setError(errorMessage);
       setStatus('error');
     }
   };

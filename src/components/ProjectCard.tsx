@@ -1,12 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Image from "next/image";
+import React from 'react';
+// import Image from "next/image"; // Removed unused import
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { FaCode } from "react-icons/fa";
+
+// Import only the necessary icons used in getTechIcon
 import {
-  FaReact, FaVuejs, FaPhp, FaLaravel, FaBootstrap, FaJsSquare, FaCss3Alt, FaHtml5, FaDatabase, FaFire, FaMobileAlt, FaCode, FaGitAlt
+  FaReact, FaVuejs, FaPhp, FaLaravel, FaBootstrap, FaJsSquare, FaCss3Alt, FaHtml5, FaDatabase, FaGitAlt
 } from 'react-icons/fa';
-import { SiNextdotjs, SiTailwindcss, SiFlutter, SiDart, SiMysql, SiRedis, SiPrestashop, SiCodeigniter, SiJquery, SiFirebase, SiDocker } from 'react-icons/si';
+
+import {
+  SiNextdotjs, SiTailwindcss, SiFlutter, SiDart, SiMysql, SiRedis, SiPrestashop, SiCodeigniter, SiJquery, SiFirebase, SiDocker
+} from 'react-icons/si';
+
 import { TbBrandCSharp } from "react-icons/tb";
 
 // Map tech names (lowercase) to icons
@@ -45,7 +53,7 @@ const TechIcon = ({ label }: { label: string }) => {
       title={label} // Add tooltip for the tech name
       className="inline-flex items-center gap-1 rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300"
     >
-      {IconComponent ? <IconComponent /> : <FaCode />} {/* Default icon */}
+      {IconComponent ? <IconComponent /> : <FaCode />} {/* Use FaCode, not FaCodeIcon */}
       {/* Optionally display label text as well or instead of tooltip */}
       {/* {label} */}
     </span>

@@ -1,8 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
-import Image from "next/image";
+import React from 'react';
 import Link from "next/link";
+// import Image from "next/image"; // Removed unused import
+import { motion } from "framer-motion";
 
 interface ModuleCardProps {
   title: string;

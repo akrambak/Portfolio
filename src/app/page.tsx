@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+// import Image from "next/image"; // Removed unused import
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -61,7 +61,7 @@ export default function HomePage() {
           variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
         >
           <motion.h1 variants={fadeIn} className="mb-2 text-4xl font-bold tracking-tight sm:text-5xl">
-            Hello, I'm <span className="text-accent-600 dark:text-accent-400">{profile.name}</span>
+            Hello, I&apos;m <span className="text-accent-600 dark:text-accent-400">{profile.name}</span>
           </motion.h1>
           <motion.p variants={fadeIn} className="text-xl text-gray-600 dark:text-gray-400">
             {profile.tagline}
@@ -159,7 +159,7 @@ export default function HomePage() {
                     transition={{ duration: 0.4 }}
                   >
                     <p className="mb-3 text-lg">
-                      "{profile.testimonials[currentTestimonial].quote}"
+                      &quot;{profile.testimonials[currentTestimonial].quote}&quot;
                     </p>
                     <footer className="text-base font-medium text-gray-800 dark:text-gray-200">
                       - {profile.testimonials[currentTestimonial].author}

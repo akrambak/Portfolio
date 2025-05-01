@@ -1,4 +1,6 @@
 import ProjectCard from "@/components/ProjectCard";
+import fs from 'fs/promises'; // Use promises API
+import path from 'path';
 
 // Placeholder data for portfolio projects
 const projects = [
@@ -53,8 +55,9 @@ async function createPlaceholderProjectImages() {
   if (typeof window !== 'undefined') return;
 
   try {
-    const fs = require('fs').promises;
-    const path = require('path');
+    // Use imported fs and path
+    // const fs = require('fs').promises;
+    // const path = require('path');
     const publicDir = path.resolve(process.cwd(), 'public');
     await fs.mkdir(publicDir, { recursive: true }); // Ensure public directory exists
 

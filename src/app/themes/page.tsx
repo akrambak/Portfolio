@@ -1,4 +1,6 @@
 import ThemeCard from "@/components/ThemeCard";
+import fs from 'fs/promises'; // Use promises API
+import path from 'path';
 
 // Placeholder data for themes
 const themes = [
@@ -30,27 +32,36 @@ const themes = [
 
 // Helper function to create placeholder image files if they don't exist
 // In a real scenario, these images would be provided.
-async function createPlaceholderImages() {
-  const fs = require('fs').promises;
-  const path = require('path');
-  const publicDir = path.resolve(process.cwd(), 'public');
+async function createPlaceholderThemeImages() {
+    // Avoid running this on the server in production
+    if (typeof window !== 'undefined') return;
 
-  for (const theme of themes) {
-    const imgPath = path.join(publicDir, theme.imageUrl);
     try {
-      await fs.access(imgPath);
-    } catch {
-      // File doesn't exist, create a dummy one
-      console.log(`Creating placeholder image: ${imgPath}`);
-      await fs.writeFile(imgPath, '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="100%" height="100%" fill="#ddd"/><text x="50%" y="50%" font-family="sans-serif" font-size="20" fill="#555" dy=".3em" text-anchor="middle">Placeholder 640x360</text></svg>', 'utf-8');
+        // Use imported fs and path
+        // const fs = require('fs').promises;
+        // const path = require('path');
+        const publicDir = path.resolve(process.cwd(), 'public');
+        await fs.mkdir(publicDir, { recursive: true }); // Ensure public directory exists
+
+        for (const theme of themes) {
+            const imgPath = path.join(publicDir, theme.imageUrl);
+            try {
+                await fs.access(imgPath);
+            } catch {
+                // File doesn't exist, create a dummy one
+                console.log(`Creating placeholder image: ${imgPath}`);
+                await fs.writeFile(imgPath, '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="100%" height="100%" fill="#ddd"/><text x="50%" y="50%" font-family="sans-serif" font-size="20" fill="#555" dy=".3em" text-anchor="middle">Placeholder 640x360</text></svg>', 'utf-8');
+            }
+        }
+    } catch (error) {
+        console.error('Error creating placeholder images:', error);
     }
-  }
 }
 
 export default async function ThemesPage() {
   // Create placeholders if running locally (optional, for demonstration)
   if (process.env.NODE_ENV === 'development') {
-    await createPlaceholderImages();
+    await createPlaceholderThemeImages();
   }
 
   return (

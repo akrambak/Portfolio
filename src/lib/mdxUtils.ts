@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import { serialize } from 'next-mdx-remote/serialize';
+import type { MDXRemoteSerializeResult } from 'next-mdx-remote'; // Import the result type
 // Import remark/rehype plugins if needed (e.g., for syntax highlighting with Prism)
 // import remarkPrism from 'remark-prism'; // Example
 
@@ -13,7 +14,7 @@ export interface PostFrontmatter {
   excerpt: string;
   category?: string;
   tags?: string[];
-  [key: string]: any; // Allow other properties
+  [key: string]: string | string[] | undefined; // More specific type instead of any
 }
 
 export interface Post<TFrontmatter> {
@@ -22,7 +23,7 @@ export interface Post<TFrontmatter> {
 }
 
 export interface PostWithSource<TFrontmatter> extends Post<TFrontmatter> {
-  source: any; // Type from next-mdx-remote/serialize, adjust if needed
+  source: MDXRemoteSerializeResult; // Use the imported type
 }
 
 const postsDirectory = path.join(process.cwd(), 'content/blog');

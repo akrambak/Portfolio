@@ -4,6 +4,12 @@ import { notFound } from 'next/navigation';
 import Link from "next/link";
 import type { Metadata } from 'next';
 
+// Define the correct interface for the component props
+type BlogPostPageProps = {
+  params: Promise<{ slug: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
 // Generate static paths for all posts
 export async function generateStaticParams() {
   const slugs = getAllPostSlugs();
@@ -11,7 +17,8 @@ export async function generateStaticParams() {
 }
 
 // Generate metadata for the page
-export async function generateMetadata({ params: { slug } }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
+  const { slug } = await params;
   const postData = await getPostData(slug);
   if (!postData) {
     return {
@@ -35,7 +42,8 @@ function formatDate(dateString: string): string {
 }
 
 // The main page component
-export default async function BlogPostPage({ params: { slug } }: { params: { slug: string } }) {
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params;
   const postData = await getPostData(slug);
 
   if (!postData) {

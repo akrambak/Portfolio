@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -56,7 +55,7 @@ export default function AboutPage() {
           variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
         >
           <motion.h1 variants={fadeIn} className="mb-2 text-4xl font-bold tracking-tight sm:text-5xl">
-            Hello, I'm <span className="text-accent-600 dark:text-accent-400">{profile.name}</span>
+            Hello, I&apos;m <span className="text-accent-600 dark:text-accent-400">{profile.name}</span>
           </motion.h1>
           <motion.p variants={fadeIn} className="text-xl text-gray-600 dark:text-gray-400">
             {profile.tagline}
@@ -152,7 +151,7 @@ export default function AboutPage() {
                 transition={{ duration: 0.4 }}
                 style={{ position: 'absolute', width: '100%' }}
               >
-                <p className="mb-2">"{profile.testimonials[currentTestimonial].quote}"</p>
+                <p className="mb-2">{profile.testimonials[currentTestimonial].quote}</p>
                 <footer className="text-sm text-gray-500 dark:text-gray-400">- {profile.testimonials[currentTestimonial].author}</footer>
               </motion.blockquote>
           </AnimatePresence>
@@ -186,6 +185,14 @@ export default function AboutPage() {
         <div className="mt-4 flex justify-center space-x-4">
           {/* Placeholder for social icons */}
           <span className="text-sm text-gray-500">Social Links Placeholder</span>
+        </div>
+        <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+          Feel free to explore my portfolio to see examples of my work, or get in
+          touch if you&apos;d like to discuss a project or opportunity. You can reach
+          me via email at <Link href="mailto:your.email@example.com" className="text-accent-600 hover:underline dark:text-accent-500">your.email@example.com</Link> or connect with me on <Link href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline dark:text-accent-500">LinkedIn</Link> and <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline dark:text-accent-500">GitHub</Link>.
+        </p>
+        <div className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
+            &quot;Code is like humor. When you have to explain it, it&apos;s bad.&quot; - Cory House
         </div>
       </motion.section>
     </div>
