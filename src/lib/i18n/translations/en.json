@@ -1,0 +1,92 @@
+{
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "portfolio": "Portfolio",
+    "blog": "Blog",
+    "contact": "Contact",
+    "modules": "Modules",
+    "themes": "Themes"
+  },
+  "hero": {
+    "greeting": "Hello, I'm",
+    "role": "Software Developer",
+    "tagline": "Fullstack Flutter mobile PHP Laravel PrestaShop Developer"
+  },
+  "profile": {
+    "name": "Akram Bakhouche",
+    "imagePlaceholder": "Image Placeholder"
+  },
+  "aboutSection": {
+    "title": "About Me",
+    "description": "I'm a passionate software developer dedicated to creating elegant solutions to complex problems.",
+    "summary": "Passionate web and mobile developer with 8 years of experience building full-stack applications. Expert in PrestaShop/PHP, with strong skills in Vue, Flutter, Dart, and Firebase."
+  },
+  "skillsSection": {
+    "title": "Skills & Expertise"
+  },
+  "skills": {
+    "fullstack": "Fullstack Development (end-to-end projects)",
+    "backend": "Backend (PHP/Laravel/CodeIgniter) & API development",
+    "frontend": "Frontend (HTML5, CSS3/SASS, JavaScript/jQuery)",
+    "ecommerce": "E-commerce (PrestaShop site creation)",
+    "mobile": "Mobile & Web Apps (Flutter, Vue, Firebase)",
+    "prestashop": "Prestashop Module Development (v1.6 & 1.7)"
+  },
+  "moreAboutSection": {
+    "title": "More About Me"
+  },
+  "highlights": {
+    "bilingual": {
+      "label": "Bilingual",
+      "value": "FR / EN"
+    },
+    "projectManagement": {
+      "label": "Project Management",
+      "value": "A to Z project management, open to challenges, critical feedback and maintenance"
+    }
+  },
+  "portfolioSection": {
+    "title": "My Work",
+    "viewProject": "View Project"
+  },
+  "blogSection": {
+    "title": "Latest Articles",
+    "readMore": "Read More"
+  },
+  "testimonialSection": {
+    "title": "Testimonials",
+    "goToTestimonial": "Go to testimonial"
+  },
+  "testimonials": {
+    "clientA": {
+      "quote": "Prestation rapide et efficace, aucun problème.",
+      "author": "Client A"
+    },
+    "clientB": {
+      "quote": "Un plaisir de travailler avec Akram… Je le recommande vivement.",
+      "author": "Client B"
+    }
+  },
+  "contactSection": {
+    "title": "Get In Touch",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "send": "Send Message",
+    "cta": "🚀 Contact me to discuss your project!",
+    "subject": "Subject",
+    "sending": "Sending...",
+    "success": "Message sent successfully! Thank you.",
+    "error": "Error: Failed to send message.",
+    "unexpectedError": "An unexpected error occurred."
+  },
+  "footer": {
+    "copyright": "All rights reserved",
+    "social": "Social Links",
+    "reachOut": "Feel free to explore my portfolio to see examples of my work, or get in touch if you'd like to discuss a project or opportunity. You can reach me via email at"
+  },
+  "quotes": {
+    "codeHumor": "\"Code is like humor. When you have to explain it, it's bad.\" - Cory House"
+  }
+} 

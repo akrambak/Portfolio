@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 // Placeholder data - replace with actual content
 const profile = {
@@ -36,6 +37,13 @@ const fadeIn = {
 
 export default function AboutPage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -43,6 +51,10 @@ export default function AboutPage() {
     }, 5000); // Change every 5 seconds
     return () => clearInterval(interval);
   }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <div className="space-y-12 md:space-y-16 lg:space-y-20">
@@ -55,10 +67,10 @@ export default function AboutPage() {
           variants={{ visible: { transition: { staggerChildren: 0.2 } } }}
         >
           <motion.h1 variants={fadeIn} className="mb-2 text-4xl font-bold tracking-tight sm:text-5xl">
-            Hello, I&apos;m <span className="text-accent-600 dark:text-accent-400">{profile.name}</span>
+            {t('hero.greeting')} <span className="text-accent-600 dark:text-accent-400">{profile.name}</span>
           </motion.h1>
           <motion.p variants={fadeIn} className="text-xl text-gray-600 dark:text-gray-400">
-            {profile.tagline}
+            {t('hero.tagline')}
           </motion.p>
         </motion.div>
         <motion.div
@@ -83,9 +95,9 @@ export default function AboutPage() {
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="mb-4 text-3xl font-semibold">About Me</h2>
+        <h2 className="mb-4 text-3xl font-semibold">{t('aboutSection.title')}</h2>
         <p className="text-lg leading-relaxed text-gray-700 dark:text-gray-300">
-          {profile.summary}
+          {t('aboutSection.summary')}
         </p>
       </motion.section>
 
@@ -96,7 +108,7 @@ export default function AboutPage() {
          viewport={{ once: true, amount: 0.3 }}
          transition={{ duration: 0.5 }}
       >
-        <h2 className="mb-6 text-3xl font-semibold">Skills & Expertise</h2>
+        <h2 className="mb-6 text-3xl font-semibold">{t('skillsSection.title')}</h2>
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {profile.skills.map((skill, index) => (
             <motion.li
@@ -121,7 +133,7 @@ export default function AboutPage() {
          viewport={{ once: true, amount: 0.5 }}
          transition={{ duration: 0.5 }}
       >
-        <h2 className="mb-4 text-3xl font-semibold">More About Me</h2>
+        <h2 className="mb-4 text-3xl font-semibold">{t('moreAboutSection.title')}</h2>
         <div className="space-y-4">
           {profile.highlights.map((highlight, index) => (
             <div key={index} className="flex items-center gap-3">
@@ -139,7 +151,7 @@ export default function AboutPage() {
          viewport={{ once: true, amount: 0.3 }}
          transition={{ duration: 0.5 }}
       >
-        <h2 className="mb-6 text-3xl font-semibold text-center">Testimonials</h2>
+        <h2 className="mb-6 text-3xl font-semibold text-center">{t('testimonialSection.title')}</h2>
         <div className="relative mx-auto max-w-2xl overflow-hidden" style={{ minHeight: '150px' }}>
            <AnimatePresence initial={false} mode="wait">
               <motion.blockquote
@@ -179,20 +191,18 @@ export default function AboutPage() {
           href="/contact"
           className="mb-6 inline-block rounded-md bg-accent-600 px-6 py-3 text-lg font-medium text-white shadow-md transition hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 dark:bg-accent-500 dark:hover:bg-accent-600 dark:focus:ring-offset-gray-950"
         >
-          {profile.cta}
+          {t('contactSection.cta')}
         </Link>
         {/* Add social icons here, potentially reusing Footer's SocialLink */}
         <div className="mt-4 flex justify-center space-x-4">
           {/* Placeholder for social icons */}
-          <span className="text-sm text-gray-500">Social Links Placeholder</span>
+          <span className="text-sm text-gray-500">{t('footer.social')}</span>
         </div>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-          Feel free to explore my portfolio to see examples of my work, or get in
-          touch if you&apos;d like to discuss a project or opportunity. You can reach
-          me via email at <Link href="mailto:your.email@example.com" className="text-accent-600 hover:underline dark:text-accent-500">your.email@example.com</Link> or connect with me on <Link href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline dark:text-accent-500">LinkedIn</Link> and <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline dark:text-accent-500">GitHub</Link>.
+          {t('footer.reachOut')} <Link href="mailto:your.email@example.com" className="text-accent-600 hover:underline dark:text-accent-500">your.email@example.com</Link> or connect with me on <Link href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline dark:text-accent-500">LinkedIn</Link> and <Link href="https://github.com/yourusername" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline dark:text-accent-500">GitHub</Link>.
         </p>
         <div className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
-            &quot;Code is like humor. When you have to explain it, it&apos;s bad.&quot; - Cory House
+            {t('quotes.codeHumor')}
         </div>
       </motion.section>
     </div>

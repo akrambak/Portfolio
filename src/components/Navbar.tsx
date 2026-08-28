@@ -1,24 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeToggleButton } from "./ThemeToggleButton";
-
-const navLinks = [
-  { href: "/about", label: "About" },
-  { href: "/modules", label: "Modules" },
-  { href: "/themes", label: "Themes" },
-  { href: "/portfolio", label: "Portfolio" },
-  { href: "/blog", label: "Blog" },
-  { href: "/contact", label: "Contact" },
-];
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const navLinks = [
+    { href: "/about", label: t("navigation.about") },
+    { href: "/modules", label: t("navigation.modules") },
+    { href: "/themes", label: t("navigation.themes") },
+    { href: "/portfolio", label: t("navigation.portfolio") },
+    { href: "/blog", label: t("navigation.blog") },
+    { href: "/contact", label: t("navigation.contact") },
+  ];
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/30 dark:bg-gray-900/40 backdrop-blur-md shadow-md">
@@ -41,9 +54,13 @@ export default function Navbar() {
                 </Link>
               ))}
             </div>
-            <ThemeToggleButton />
+            <div className="ml-4 flex items-center space-x-2">
+              <LanguageSwitcher />
+              <ThemeToggleButton />
+            </div>
           </div>
           <div className="-mr-2 flex items-center md:hidden">
+            <LanguageSwitcher />
             <ThemeToggleButton />
             <button
               onClick={toggleMobileMenu}

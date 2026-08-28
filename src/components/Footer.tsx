@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { FaLinkedin, FaGithub } from "react-icons/fa"; // Import icons
+import { useTranslation } from "@/lib/i18n";
+import { useEffect, useState } from "react";
 
 // Replace with actual profile URLs
 const LINKEDIN_URL = "#";
@@ -13,12 +15,24 @@ const SocialLink = ({ href, label, icon: Icon }: { href: string; label: string; 
 );
 
 export default function Footer() {
+  const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <footer className="bg-black/10 dark:bg-black/30 backdrop-blur-sm mt-12">
       <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-between sm:flex-row">
           <div className="text-center text-sm text-gray-700 dark:text-gray-300 sm:text-left">
-            &copy; {new Date().getFullYear()} Akram Bakhouche. All rights reserved.
+            &copy; {new Date().getFullYear()} Akram Bakhouche. {t('footer.copyright')}
           </div>
           <div className="mt-4 flex space-x-6 sm:mt-0 sm:justify-start">
             <SocialLink href={LINKEDIN_URL} label="LinkedIn" icon={FaLinkedin} />

@@ -1,14 +1,23 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import CursorGlow from "./CursorGlow";
-import { usePathname } from "next/navigation"; // Ensure pathname is imported
+import { usePathname } from "next/navigation";
+import { useTranslation } from "@/lib/i18n";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname(); // Get current path for AnimatePresence key
+  const pathname = usePathname();
+  const { locale } = useTranslation();
+
+  // Update HTML lang attribute when locale changes
+  useEffect(() => {
+    if (document && locale) {
+      document.documentElement.lang = locale;
+    }
+  }, [locale]);
 
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/lib/i18n';
 
 export default function ContactForm() {
+  const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -12,6 +15,11 @@ export default function ContactForm() {
   });
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -35,14 +43,14 @@ export default function ContactForm() {
 
       if (!response.ok) {
           const errorData = await response.json().catch(() => ({})); // Try to parse error
-          throw new Error(errorData.error || 'Failed to send message. Please try again.');
+          throw new Error(errorData.error || t('contactSection.error'));
       }
       // --- End of API call section ---
 
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
     } catch (err: unknown) {
-      let errorMessage = 'An unexpected error occurred.';
+      let errorMessage = t('contactSection.unexpectedError');
       if (err instanceof Error) {
         errorMessage = err.message;
       } else if (typeof err === 'string') {
@@ -53,11 +61,15 @@ export default function ContactForm() {
     }
   };
 
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Name
+          {t('contactSection.name')}
         </label>
         <input
           type="text"
@@ -72,7 +84,7 @@ export default function ContactForm() {
       </div>
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Email
+          {t('contactSection.email')}
         </label>
         <input
           type="email"
@@ -87,7 +99,7 @@ export default function ContactForm() {
       </div>
       <div>
         <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Subject
+          {t('contactSection.subject')}
         </label>
         <input
           type="text"
@@ -102,7 +114,7 @@ export default function ContactForm() {
       </div>
       <div>
         <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Message
+          {t('contactSection.message')}
         </label>
         <textarea
           name="message"
@@ -123,7 +135,7 @@ export default function ContactForm() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          {status === 'submitting' ? 'Sending...' : 'Send Message'}
+          {status === 'submitting' ? t('contactSection.sending') : t('contactSection.send')}
         </motion.button>
       </div>
       {status === 'success' && (
@@ -132,7 +144,7 @@ export default function ContactForm() {
           animate={{ opacity: 1 }}
           className="text-center text-sm text-green-600 dark:text-green-400"
         >
-          Message sent successfully! Thank you.
+          {t('contactSection.success')}
         </motion.p>
       )}
       {status === 'error' && (
@@ -141,7 +153,7 @@ export default function ContactForm() {
           animate={{ opacity: 1 }}
           className="text-center text-sm text-red-600 dark:text-red-400"
         >
-          Error: {error || 'Failed to send message.'}
+          {error || t('contactSection.error')}
         </motion.p>
       )}
     </form>

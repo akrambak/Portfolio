@@ -18,6 +18,12 @@ import Script from "next/script";
 export const metadata: Metadata = {
   title: "Akram Bakhouche - Portfolio",
   description: "Fullstack Web & Mobile Developer",
+  alternates: {
+    languages: {
+      'en': '/',
+      'fr': '/fr',
+    },
+  },
 };
 
 export default function RootLayout({
@@ -26,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html suppressHydrationWarning>
       <head>
         {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="afterInteractive">
@@ -39,9 +45,22 @@ export default function RootLayout({
           `}
         </Script>
         {/* End Google Tag Manager */}
+        
+        {/* Script to set the language attribute on the html tag */}
+        <Script id="set-language" strategy="beforeInteractive">
+          {`
+            (function() {
+              try {
+                const savedLocale = localStorage.getItem('locale') || 'en';
+                document.documentElement.lang = savedLocale;
+              } catch (e) {
+                document.documentElement.lang = 'en';
+              }
+            })();
+          `}
+        </Script>
       </head>
       <body
-        // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300`}
       >
         {/* Google Tag Manager (noscript) */}
