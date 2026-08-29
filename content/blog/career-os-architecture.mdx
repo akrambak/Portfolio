@@ -1,0 +1,277 @@
+---
+title: 'Career-OS architecture — how I built a job-search agent with Claude SDK'
+date: 2026-05-28
+excerpt: 'A walkthrough of the AI-agent system I built to run my own job search and freelance pipeline — five scrapers, a Claude scorer with prompt caching, an evaluable drafter, and the design decisions I made along the way.'
+category: 'Architecture'
+tags: ['Claude SDK', 'Python', 'AI agents', 'Career-OS', 'Build in public']
+---
+
+I built Career-OS to solve a real problem for myself: spending two hours a day
+scrolling job boards is a terrible way to find your next role, and existing
+"AI job applier" tools are either spam machines or vapor.
+
+The system is open-source on
+[github.com/akrambak/career-os](https://github.com/akrambak/career-os).
+This post is the technical walkthrough: what it does, why each layer exists,
+and the design decisions that made it actually ship instead of dying as a
+weekend prototype.
+
+## What it does, in one paragraph
+
+Every morning, Career-OS crawls five sources (RemoteOK, two WeWorkRemotely
+feeds, Remotive, and two Hacker News monthly threads). It scores each posting
+against my profile using Claude with structured-output JSON, drafts a tailored
+outreach email when fit ≥ 70, and emails me a digest with the top picks. I
+review the digest at breakfast, decide which to send, and run
+`career-os apply` from the terminal to track the pipeline through to offer or
+rejection.
+
+## The architecture
+
+```
+┌──────────────┐   ┌──────────────┐   ┌──────────────┐
+│ 5 scrapers   │──▶│ SQLite store │──▶│ Claude       │
+│ (RemoteOK,   │   │ (jobs,       │   │ scorer       │
+│  WWR, HN…)   │   │  scores)     │   │ (fit 0-100)  │
+└──────────────┘   └──────────────┘   └──────────────┘
+                          │                   │
+                          ▼                   ▼
+                   ┌──────────────┐   ┌──────────────┐
+                   │ CLI          │   │ Drafter      │
+                   │ (fetch/score │   │ (outreach    │
+                   │  /draft/…)   │   │  per fit)    │
+                   └──────────────┘   └──────────────┘
+                          │                   │
+                          ▼                   ▼
+                   ┌──────────────────────────────────┐
+                   │ Daily email digest (Resend /     │
+                   │ Postmark / SMTP)                 │
+                   └──────────────────────────────────┘
+```
+
+Five layers, each replaceable: scrapers, store, scorer, drafter, digest. No
+framework. Just Python modules and one Anthropic SDK dependency.
+
+## Layer 1 — Scrapers
+
+Each scraper is a 50-line file. The shape is intentionally boring:
+
+```python
+# src/career_os/scrapers/remoteok.py
+
+class RemoteOKScraper(BaseScraper):
+    source_name = "remoteok"
+
+    async def fetch(self) -> list[RawJob]:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get("https://remoteok.com/api")
+            resp.raise_for_status()
+            data = resp.json()
+
+        return [self.normalize(item) for item in data if self.is_job(item)]
+
+    def normalize(self, item: dict) -> RawJob:
+        return RawJob(
+            external_id=str(item["id"]),
+            title=item["position"],
+            company=item["company"],
+            description=item.get("description", ""),
+            url=item["url"],
+            posted_at=parse_date(item["date"]),
+            source=self.source_name,
+        )
+```
+
+The design rule: **a scraper does fetching + normalization, nothing else.** No
+filtering, no scoring, no business logic. Adding a new source — say, a French
+freelance board — is a 50-line file that the registry picks up automatically.
+
+The HN "Who is hiring?" and "Seeking freelancer?" scrapers use the public
+Algolia API instead of scraping HTML, which is rude. Algolia returns
+structured fields (stack, budget, location, contact email) that would be
+brittle to parse from prose.
+
+## Layer 2 — Store
+
+SQLite with a Postgres-shaped schema. Four tables: `jobs`, `scores`,
+`applications`, `drafts`.
+
+The Postgres-shaped part matters. When this becomes a multi-tenant SaaS, the
+swap to Postgres is one connection-string change and one `npm i pg` — no
+schema migration, no rewriting queries. SQLite is fast enough for one user
+and gives me file-based ergonomics (`scp career_os.db` to back up, `sqlite3
+career_os.db` to inspect).
+
+```python
+# src/career_os/db/schema.sql
+
+CREATE TABLE jobs (
+    id           INTEGER PRIMARY KEY,
+    external_id  TEXT NOT NULL,
+    source       TEXT NOT NULL,
+    title        TEXT NOT NULL,
+    company      TEXT NOT NULL,
+    description  TEXT,
+    url          TEXT NOT NULL,
+    posted_at    DATETIME NOT NULL,
+    seen_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(external_id, source)
+);
+
+CREATE TABLE scores (
+    id            INTEGER PRIMARY KEY,
+    job_id        INTEGER REFERENCES jobs(id),
+    fit           INTEGER NOT NULL,
+    pros          JSON,
+    cons          JSON,
+    angle         TEXT,
+    scored_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(job_id)
+);
+```
+
+`(external_id, source)` as a composite key dedupes across re-runs. The same
+RemoteOK job won't get scored twice.
+
+## Layer 3 — The Claude scorer
+
+The expensive layer, in both money and engineering effort. The scorer
+decides which jobs deserve a draft, which deserve a glance, and which to
+skip. Mis-calibrate it and you either drown in noise or miss good fits.
+
+Two design decisions made this work:
+
+**Decision 1: prompt caching on the system block.**
+
+The system prompt is ~2,400 tokens — my profile, the scoring rubric, examples
+of what "fit 80" vs "fit 50" looks like. It's identical for every job. Putting
+it inside a cached block means I pay full price for the first job of the day
+and ~10% for every subsequent one.
+
+```python
+# src/career_os/scorer/claude_scorer.py
+
+def score_job(job: Job) -> JobScore:
+    resp = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=512,
+        system=[
+            {
+                "type": "text",
+                "text": SCORER_SYSTEM_PROMPT,
+                "cache_control": {"type": "ephemeral"},
+            }
+        ],
+        messages=[
+            {"role": "user", "content": render_job(job)},
+        ],
+    )
+
+    return parse_score(resp.content[0].text)
+```
+
+**Decision 2: structured JSON output, not free-form.**
+
+I want `{"fit": 87, "pros": [...], "cons": [...], "angle": "..."}` — not a
+paragraph of prose I have to regex. The system prompt asks for valid JSON
+matching a schema, with a few-shot example. I use `pydantic` to parse the
+response and fail loudly if the shape's wrong. Failure rate after the first
+week of tuning: under 0.5%.
+
+```python
+class JobScore(BaseModel):
+    fit: int = Field(ge=0, le=100)
+    pros: list[str] = Field(min_length=1, max_length=5)
+    cons: list[str] = Field(min_length=0, max_length=5)
+    angle: str  # the one-line pitch to lead the outreach with
+```
+
+## Layer 4 — The drafter
+
+When fit ≥ 70, the drafter writes a tailored outreach email. It takes the
+job, the score, and a draft type (FT-cover or freelance-pitch) and produces
+something I'd actually send.
+
+The interesting bit: **two completely separate system prompts.** A cover
+letter for a senior FT role and a freelance pitch are different jobs with
+different tone requirements. I tried one prompt that "knew" which to write.
+It produced muddled outputs. Splitting them — different system prompts loaded
+based on the `draft_type` — fixed it overnight.
+
+Hard rules baked into both prompts:
+
+- Never invent metrics. If the candidate (me) hasn't shipped X, don't claim X.
+- Freelance: no engagements under 2 weeks.
+- Freelance: no hourly rates under €60/hr equivalent.
+- FT: no roles requiring on-site days outside Europe.
+- No emoji in the body. (Personal taste. Survives prompt-injection attempts
+  because it's in the cached system block.)
+
+```python
+def draft_outreach(job: Job, score: JobScore, type: str) -> str:
+    system_prompt = (
+        FT_COVER_PROMPT if type == "ft_cover"
+        else FREELANCE_PITCH_PROMPT
+    )
+    resp = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=600,
+        system=[{"type": "text", "text": system_prompt,
+                 "cache_control": {"type": "ephemeral"}}],
+        messages=[{"role": "user", "content": render_brief(job, score)}],
+    )
+    return resp.content[0].text
+```
+
+## Layer 5 — The eval harness
+
+The part of the system most "AI agent" projects skip. The scorer is the
+center of the system — if it silently regresses (because I tweaked the system
+prompt, because Anthropic shipped a new model version, because the
+temperature setting drifted), I'd ship bad drafts for weeks before noticing.
+
+So: ten hand-labeled job fixtures with expected fit scores ±5. The eval
+command (`career-os eval`) replays them through the scorer and reports any
+that fell outside tolerance.
+
+```python
+# tests/fixtures/scored_jobs.jsonl
+{"job_id": "fixture_001", "expected_fit": 88, "tolerance": 5, ...}
+{"job_id": "fixture_002", "expected_fit": 35, "tolerance": 5, ...}
+...
+```
+
+Run before every commit to the scorer or any prompt change. Took about an hour
+to build and has saved me from at least three subtle regressions.
+
+This is non-negotiable for any LLM-in-production work. **If you can't measure
+quality, you can't iterate.** Don't ship a Claude-powered feature without an
+eval harness if the cost of being wrong exceeds the cost of building the
+harness.
+
+## What it cost to build
+
+Six weeks of evening + weekend work to get to the MVP I'm running today.
+The Anthropic bill: under $40/month including the eval re-runs. Less than my
+coffee budget.
+
+## What's next
+
+Three things on the roadmap:
+
+1. **A LinkedIn / X cross-poster** that publishes commit milestones with one
+   command — `career-os post --milestone "5 scrapers live"`.
+2. **An applications tracker UI** beyond the current CLI. Probably a Next.js
+   dashboard pulling from the same SQLite store.
+3. **Multi-tenant mode** — same architecture, Postgres swap, an auth layer,
+   and shipping as a SaaS.
+
+If you want to play with it locally, `pip install -e ".[dev]"` and follow the
+README. If you want a system like this built for your team — sales-lead
+enrichment, internal ops agents, RAG-over-docs — that's exactly the work I
+take on. [The shape is on the hire-me page](/hire-me).
+
+And if you want the LLM-in-production patterns from this post applied to your
+existing Laravel or PrestaShop stack, the
+[5-places-to-bolt-AI](/blog/5-places-to-bolt-ai-onto-laravel) post covers
+that ground.

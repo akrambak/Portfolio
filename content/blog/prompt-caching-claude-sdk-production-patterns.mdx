@@ -1,0 +1,294 @@
+---
+title: 'Prompt caching in production: the 4 patterns that cut my Anthropic bill (and when not to bother)'
+date: 2026-05-28
+excerpt: 'Prompt caching with Claude SDK is the cheapest 10× cost win you can deploy in a single afternoon — when you use it correctly. Here are the 4 patterns I ship in production, the cost math behind each, and the 4 cases where caching does not help.'
+category: 'Patterns'
+tags: ['Claude SDK', 'Prompt engineering', 'Cost optimization', 'AI agents', 'Production']
+---
+
+The first month I ran Career-OS in production, the Anthropic bill was bigger
+than my coffee budget. After I wired prompt caching properly into the scorer,
+the drafter, and the digest, it dropped under it. Same calls. Same model.
+Same outputs. Roughly an 80% cost reduction in one afternoon.
+
+Prompt caching is the single highest-leverage knob in the Claude SDK. It's
+also the one I see misconfigured most often in client code — usually because
+people read the docs, slap `cache_control` on something, and assume they're
+caching when they're not.
+
+Here are the 4 patterns I ship in production, with the cost math, and the 4
+cases where caching genuinely does not help so you don't waste a day on it.
+
+## What prompt caching actually does
+
+The mechanics, in three lines, because you need to know this to use it right:
+
+- A **cached block** (added with `"cache_control": { "type": "ephemeral" }`)
+  is stored on Anthropic's side after the first call. Subsequent calls with
+  an identical cached block hit the cache instead of re-processing.
+- **First call to a cache block costs 1.25× the base input price** (cache
+  write). Every subsequent call within the TTL costs **0.1× the base
+  price** (cache read). The break-even is at the second call.
+- **Default TTL is 5 minutes.** A 1-hour TTL is available at 2× write cost.
+  Plan for the TTL — it shapes the entire pattern.
+
+If your workload calls the same prompt twice within 5 minutes, caching pays
+off. If you call it once an hour with no warmup, you're paying the write
+penalty for nothing.
+
+## Pattern 1 — Cache the system block
+
+The pattern everyone reaches for first, and the one that gives the biggest
+win in 90% of cases.
+
+```typescript
+// app/api/agent/route.ts
+import Anthropic from "@anthropic-ai/sdk";
+
+const claude = new Anthropic();
+
+export async function POST(req: Request) {
+  const { question } = await req.json();
+
+  const reply = await claude.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1024,
+    system: [
+      {
+        type: "text",
+        text: SYSTEM_PROMPT,                    // 2,400 tokens of context
+        cache_control: { type: "ephemeral" },   // ← the magic
+      },
+    ],
+    messages: [{ role: "user", content: question }],
+  });
+
+  return Response.json({ answer: reply.content });
+}
+```
+
+The math, for a 2,400-token system prompt called 100 times in 5 minutes (the
+realistic shape of a busy support endpoint):
+
+- **Without caching**: 100 × 2,400 × $3/M input = **$0.72**
+- **With caching**: 1 × 2,400 × $3.75/M (write) + 99 × 2,400 × $0.30/M (read) = **$0.08**
+- **Savings: ~89%.**
+
+The break-even is between the 1st and 2nd call. After call 2 you're already
+ahead. After call 100 you've collapsed an 89% chunk of your bill into
+operating expense.
+
+**Cache hits are silent.** The API returns `cache_creation_input_tokens` and
+`cache_read_input_tokens` in the usage block. Log them. If you're not seeing
+reads, you're not caching:
+
+```typescript
+console.log({
+  cache_write: reply.usage.cache_creation_input_tokens,
+  cache_read:  reply.usage.cache_read_input_tokens,
+  uncached:    reply.usage.input_tokens,
+});
+```
+
+A single dashboard tile showing cache_read / (cache_read + uncached) tells
+you whether your caching is working. Mine sits at 94% for the Career-OS
+scorer during morning crawl runs.
+
+## Pattern 2 — Cache long documents (the RAG-adjacent pattern)
+
+The pattern that actually changes which architectures are economically viable.
+
+Say you have a 30,000-token product manual, customer policy document, or
+codebase. Without caching, every customer question costs you ~$0.09 in input
+tokens alone. With caching, your *first* question of the day costs you
+~$0.11, and every subsequent question costs $0.01.
+
+```python
+# document_qa.py
+
+reply = client.messages.create(
+    model="claude-sonnet-4-6",
+    max_tokens=600,
+    system=[
+        {
+            "type": "text",
+            "text": LIGHT_INSTRUCTIONS,         # 200 tokens, uncached
+        },
+        {
+            "type": "text",
+            "text": SHOP_POLICY_DOCUMENT,       # 30,000 tokens, CACHED
+            "cache_control": {"type": "ephemeral"},
+        },
+    ],
+    messages=[{"role": "user", "content": user_question}],
+)
+```
+
+What this kills: most of the use cases people built RAG for. If your
+"retrieval over a fixed corpus" use case fits inside Claude's 200K context,
+caching the full document is often cheaper and *always more accurate* than
+embedding-based retrieval. No chunking. No top-k tuning. No vector DB
+operational burden.
+
+The catch: the corpus has to be relatively stable. If your "document" is
+yesterday's database dump, you're paying the cache write fee every single
+day. Use cache for things that change weekly, not hourly.
+
+## Pattern 3 — Cache tool definitions
+
+Tool use blocks are tokens. They count. And they're identical across every
+call to the same agent.
+
+```python
+TOOLS = [
+    {"name": "search_orders", "description": "...", "input_schema": {...}},
+    {"name": "issue_refund",  "description": "...", "input_schema": {...}},
+    {"name": "lookup_user",   "description": "...", "input_schema": {...}},
+    # … 12 tools in total, ~3,500 tokens of schema
+]
+
+reply = client.messages.create(
+    model="claude-sonnet-4-6",
+    tools=TOOLS,
+    system=[
+        {
+            "type": "text",
+            "text": SYSTEM_PROMPT,
+            "cache_control": {"type": "ephemeral"},
+        },
+    ],
+    messages=[...],
+)
+```
+
+When you cache the system block, **tool definitions get cached too** if
+they're declared in the same call. They become part of the cached prefix.
+You don't need a separate `cache_control` on the tools array — the cache
+boundary extends through everything in the system block and the tools.
+
+This is a 3,500-token win you get for free when you're already caching the
+system block. Most of the time it's already happening and you don't realize
+it. Worth confirming with the cache_creation_input_tokens log line.
+
+## Pattern 4 — Conversation prefix caching for multi-turn agents
+
+The pattern that makes long-running agentic loops affordable.
+
+Multi-turn agents — the ones that loop through `assistant → tool_use → tool_result → assistant → tool_use → …` — re-send the entire conversation
+history on every call. By turn 8, you're sending 12,000+ tokens of history,
+most of which is unchanged from turn 7.
+
+Cache the prefix.
+
+```python
+def agent_loop(initial_message: str) -> str:
+    messages = [{"role": "user", "content": initial_message}]
+
+    for turn in range(max_turns := 10):
+        # Cache everything up to the last assistant turn
+        cached_messages = mark_last_message_cached(messages)
+
+        reply = client.messages.create(
+            model="claude-sonnet-4-6",
+            tools=TOOLS,
+            system=[{
+                "type": "text", "text": SYSTEM_PROMPT,
+                "cache_control": {"type": "ephemeral"}
+            }],
+            messages=cached_messages,
+        )
+
+        if reply.stop_reason == "end_turn":
+            return reply.content[0].text
+
+        messages.append({"role": "assistant", "content": reply.content})
+        messages.append({"role": "user", "content": run_tools(reply)})
+
+def mark_last_message_cached(messages: list) -> list:
+    """Add cache_control to the last user message so the whole prefix caches."""
+    out = list(messages)
+    if out:
+        last = out[-1].copy()
+        if isinstance(last["content"], str):
+            last["content"] = [{"type": "text", "text": last["content"]}]
+        last["content"][-1]["cache_control"] = {"type": "ephemeral"}
+        out[-1] = last
+    return out
+```
+
+Each new turn extends the cached prefix by the previous turn's content. By
+turn 10, ~95% of your input tokens hit cache reads. An agent loop that would
+cost $0.40 to run uncached costs $0.05 with this pattern.
+
+## The 4 cases where caching does NOT help
+
+This is where I see clients waste afternoons. Be honest about whether your
+workload fits.
+
+**1. Your prompts vary too much.** If each call has a different system
+prompt (you're concatenating user-specific data into it, or A/B-testing
+prompt variants), there's no shared cache prefix to hit. Either restructure
+to push the variation into the messages block (keeping the system stable),
+or accept that caching isn't your lever.
+
+**2. Your volume is low.** If you call the model 5 times an hour spread
+evenly, the 5-minute TTL means you almost never hit a warm cache. The
+1-hour TTL helps but doubles the write cost. At extremely low volumes the
+math sometimes works out to "uncached is cheaper."
+
+**3. Your prompts are short.** Below ~1,024 tokens of cacheable content (the
+Anthropic minimum), caching just doesn't activate. The write cost is paid;
+no cache is created. Quietly. Check the usage block.
+
+**4. Your content is per-user and short-lived.** If the cached content is
+specific to one user and they only make one or two calls, you're paying the
+write penalty without ever hitting the cache. Aggregation across users or
+sessions doesn't apply.
+
+## Operational hygiene
+
+The three things to wire up *before* you ship cached calls:
+
+1. **Log `cache_creation_input_tokens` and `cache_read_input_tokens` for
+   every call.** Without this, you have no idea if caching is working.
+2. **Alert on cache hit rate dropping.** If your dashboard shows 90% hits
+   on Monday and 12% on Tuesday, something changed in your prompt
+   structure. Tuesday's bill will reflect it.
+3. **Don't put PII or per-user secrets in the cached block.** Cached
+   content is reused. Anything you put in there is shared across every call
+   that hits the same cache key. Put per-user context in the user messages
+   block where it belongs.
+
+## What this is worth, dollars and time
+
+For Career-OS, the four patterns above collapsed the morning crawl-and-score
+run from "noticeable on the bill" to "rounding error." Setup time: one
+afternoon. Ongoing maintenance: the three log lines + one dashboard tile.
+
+For an inbound support agent handling 20,000 queries a month: easily
+$200–$400/month saved versus uncached, every month, forever, with the same
+quality of output.
+
+For a documentation-QA endpoint over a stable corpus: the difference between
+"too expensive to ship to all users" and "an obvious feature." I've watched
+this single decision unblock entire roadmap items.
+
+## When to call
+
+If you have a Claude-powered feature in production today and you do not have
+a dashboard tile showing cache hit rate, that's the bug. Cache misses are
+silent and your bill is paying for them.
+
+This is a 1–3 day scoped audit + fix that I take on:
+[the shape is on the hire-me page](/hire-me).
+
+For the full context where these patterns ship, see the
+[Career-OS architecture walkthrough](/blog/career-os-architecture).
+For the upstream patterns — where to bolt the Claude call onto your stack
+in the first place — see the
+[5 places to bolt AI onto Laravel](/blog/5-places-to-bolt-ai-onto-laravel)
+and the
+[PrestaShop 5-file pattern](/blog/claude-agent-prestashop-5-files).
+And before any of this ships to production, the
+[eval harness post](/blog/evaluating-claude-features-before-production)
+is the discipline that catches the regressions caching alone can't.

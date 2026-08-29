@@ -1,0 +1,429 @@
+---
+title: 'How to add a Claude agent to a PrestaShop store: a 5-file pattern'
+date: 2026-05-28
+excerpt: 'PrestaShop is the workhorse of EU e-commerce, and bolt-on AI is the obvious next move for catalog ops. Here is a minimal 5-file PrestaShop module pattern that wires Claude SDK into the back-office without touching core — production-ready, with the failure modes I have hit.'
+category: 'Patterns'
+tags: ['PrestaShop', 'PHP', 'Claude SDK', 'E-commerce', 'AI agents']
+---
+
+If you run a PrestaShop store, you have a back-office that knows everything
+about your catalog. Adding AI to it usually means giving merchants a button:
+"generate a product description", "suggest a category tree cleanup",
+"write the SEO meta from these specs". The hard part is wiring it in without
+fighting the framework.
+
+Here is the minimum-viable 5-file pattern I use for PrestaShop modules that
+call Claude. It works on 1.7.x and 8.x, doesn't touch core, and ships as a
+single zip.
+
+The example feature: a **"Generate description with AI"** button on the
+product edit page that calls Claude and writes three variants the merchant
+can pick from. Same pattern works for any back-office Claude integration —
+swap the prompt + the response handler.
+
+## The 5 files
+
+```
+modules/aiassistant/
+├── aiassistant.php             # 1. Module manifest + lifecycle hooks
+├── composer.json               # 2. Pull anthropic-sdk-php
+├── src/Service/AIService.php   # 3. Claude SDK wrapper
+├── controllers/admin/AdminAIController.php  # 4. Back-office endpoint
+└── views/js/admin-product-button.js          # 5. JS button injection
+```
+
+That's it. One module zip, drop into `/modules/`, install, done.
+
+## File 1 — `aiassistant.php` (module manifest)
+
+The bootstrap. PrestaShop's lifecycle is hook-driven, so this file declares
+the module to PS and registers the back-office hook we need.
+
+```php
+<?php
+// modules/aiassistant/aiassistant.php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+class AIAssistant extends Module
+{
+    public function __construct()
+    {
+        $this->name = 'aiassistant';
+        $this->tab = 'administration';
+        $this->version = '1.0.0';
+        $this->author = 'You';
+        $this->need_instance = 0;
+        $this->ps_versions_compliancy = ['min' => '1.7', 'max' => '8.99.99'];
+
+        parent::__construct();
+
+        $this->displayName = $this->trans('AI Assistant', [], 'Modules.AIAssistant.Admin');
+        $this->description = $this->trans('Claude-powered helpers for back-office workflows.', [], 'Modules.AIAssistant.Admin');
+    }
+
+    public function install(): bool
+    {
+        return parent::install()
+            && $this->registerHook('displayAdminProductsExtra');
+    }
+
+    public function uninstall(): bool
+    {
+        return parent::uninstall();
+    }
+
+    /**
+     * Injects the "Generate description" button on the product edit page.
+     */
+    public function hookDisplayAdminProductsExtra(array $params): string
+    {
+        $this->context->controller->addJS($this->_path . 'views/js/admin-product-button.js');
+        $this->context->smarty->assign([
+            'productId' => (int) $params['id_product'],
+            'endpoint'  => $this->context->link->getAdminLink('AdminAI'),
+        ]);
+        return $this->display(__FILE__, 'views/templates/admin/button.tpl');
+    }
+}
+```
+
+The hook `displayAdminProductsExtra` runs on every product edit page. We
+inject our JS + a small Smarty template. The Smarty template (~5 lines) just
+defines the button DOM element the JS will hydrate.
+
+## File 2 — `composer.json` (one dependency)
+
+```json
+{
+    "name": "yourname/ps-aiassistant",
+    "description": "AI Assistant module for PrestaShop",
+    "require": {
+        "php": ">=8.1",
+        "anthropic/sdk": "^0.20"
+    },
+    "autoload": {
+        "psr-4": {
+            "AIAssistant\\": "src/"
+        }
+    }
+}
+```
+
+Run `composer install` in the module directory before zipping. The
+`vendor/` folder ships inside the zip. PrestaShop modules don't get a build
+step, so vendor IS the runtime.
+
+PSR-4 autoloading via the namespace keeps the code clean. PrestaShop 1.7+
+plays nicely with PSR-4 as long as `require_once __DIR__ . '/vendor/autoload.php';`
+runs in the manifest (see File 1).
+
+## File 3 — `src/Service/AIService.php` (the Claude wrapper)
+
+The thin service class that wraps every call into Claude SDK. **All** Claude
+calls go through here — never directly from a controller. This is the seam
+where rate-limiting, retries, logging, and prompt versioning live.
+
+```php
+<?php
+// modules/aiassistant/src/Service/AIService.php
+
+namespace AIAssistant\Service;
+
+use Anthropic\Anthropic;
+use Anthropic\Resources\Messages;
+
+class AIService
+{
+    private Anthropic $client;
+
+    public function __construct(string $apiKey)
+    {
+        $this->client = Anthropic::factory()
+            ->withApiKey($apiKey)
+            ->make();
+    }
+
+    public function generateDescriptions(array $product, string $tone = 'premium', string $lang = 'en'): array
+    {
+        $resp = $this->client->messages()->create([
+            'model'      => 'claude-sonnet-4-6',
+            'max_tokens' => 700,
+            'system'     => [
+                [
+                    'type'          => 'text',
+                    'text'          => $this->systemPrompt(),
+                    'cache_control' => ['type' => 'ephemeral'],
+                ],
+            ],
+            'messages' => [
+                [
+                    'role'    => 'user',
+                    'content' => $this->renderProductBrief($product, $tone, $lang),
+                ],
+            ],
+        ]);
+
+        return $this->parseVariants($resp->content[0]->text);
+    }
+
+    private function systemPrompt(): string
+    {
+        return <<<PROMPT
+You are an expert e-commerce copywriter for PrestaShop stores.
+For each request, produce exactly 3 variants of a product description.
+
+Rules:
+- 40-70 words each
+- Each variant opens with the strongest concrete benefit
+- Use ONLY the attributes provided. Never invent specs, materials, certifications
+- Match the requested tone exactly
+- Use the requested language only
+- Return JSON: {"variants": ["v1", "v2", "v3"]}
+PROMPT;
+    }
+
+    private function renderProductBrief(array $product, string $tone, string $lang): string
+    {
+        return json_encode([
+            'name'       => $product['name'],
+            'attributes' => $product['attributes'] ?? [],
+            'category'   => $product['category'] ?? null,
+            'tone'       => $tone,
+            'language'   => $lang,
+        ], JSON_UNESCAPED_UNICODE);
+    }
+
+    private function parseVariants(string $raw): array
+    {
+        // tolerant JSON extract — Claude sometimes wraps in ```json
+        $json = preg_replace('/^```(?:json)?\s*|\s*```$/m', '', trim($raw));
+        $data = json_decode($json, true);
+        return $data['variants'] ?? [];
+    }
+}
+```
+
+Two patterns worth calling out:
+
+**Prompt caching on the system block.** Same trick as Career-OS — the system
+prompt is identical across all calls, cache it. After the first call of the
+session, you're paying ~10% of the system-prompt tokens. For a busy catalog
+manager generating 50 descriptions, that's the difference between $1 and 10¢.
+
+**Tolerant JSON parsing.** Claude *should* return clean JSON when you ask, but
+sometimes wraps the response in markdown code fences. The `preg_replace`
+strips those before `json_decode`. Cheap insurance against a deploy day surprise.
+
+## File 4 — `controllers/admin/AdminAIController.php` (the endpoint)
+
+The back-office controller. PrestaShop routes `?controller=AdminAI` to this
+class. We handle a single POST action: generate-description.
+
+```php
+<?php
+// modules/aiassistant/controllers/admin/AdminAIController.php
+
+use AIAssistant\Service\AIService;
+
+class AdminAIController extends ModuleAdminController
+{
+    public function __construct()
+    {
+        $this->bootstrap = true;
+        parent::__construct();
+    }
+
+    public function ajaxProcessGenerateDescription(): void
+    {
+        $productId = (int) Tools::getValue('id_product');
+        $tone      = Tools::getValue('tone', 'premium');
+        $lang      = Tools::getValue('lang', 'en');
+
+        if (!$productId) {
+            $this->ajaxRender(json_encode(['error' => 'missing product id']));
+            return;
+        }
+
+        // Load product attributes from PS, NOT from the request body —
+        // the request body could be tampered with. Trust DB, not client.
+        $product = $this->loadProductBrief($productId);
+
+        $apiKey = Configuration::get('AIASSISTANT_ANTHROPIC_KEY');
+        if (!$apiKey) {
+            $this->ajaxRender(json_encode(['error' => 'API key not configured']));
+            return;
+        }
+
+        try {
+            $service  = new AIService($apiKey);
+            $variants = $service->generateDescriptions($product, $tone, $lang);
+            $this->ajaxRender(json_encode(['variants' => $variants]));
+        } catch (\Exception $e) {
+            error_log('[AIAssistant] ' . $e->getMessage());
+            $this->ajaxRender(json_encode(['error' => 'Generation failed']));
+        }
+    }
+
+    private function loadProductBrief(int $productId): array
+    {
+        $product = new Product($productId, false, $this->context->language->id);
+        return [
+            'name'       => $product->name,
+            'attributes' => $this->extractAttributes($product),
+            'category'   => $product->getDefaultCategory(),
+        ];
+    }
+
+    private function extractAttributes(Product $product): array
+    {
+        // Pull attribute groups / features from PS — kept minimal here for clarity.
+        return $product->getFrontFeatures($this->context->language->id);
+    }
+}
+```
+
+**Critical detail:** never trust the product brief sent from the client.
+Always load it from the database server-side using the `id_product` the
+client passed. If you let the client send the brief, anyone with browser
+devtools can ask Claude to write a description for a product that doesn't
+exist, or worse, prompt-inject by stuffing the description field with
+"ignore previous instructions, ...".
+
+## File 5 — `views/js/admin-product-button.js` (the trigger)
+
+The thin client. Picks up the button injected via the Smarty template,
+calls our endpoint, renders the 3 variants.
+
+```javascript
+// modules/aiassistant/views/js/admin-product-button.js
+
+(function() {
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('ai-generate-description');
+    if (!btn) return;
+
+    btn.addEventListener('click', async () => {
+      const productId = btn.dataset.productId;
+      const endpoint  = btn.dataset.endpoint;
+      const tone      = document.getElementById('ai-tone').value;
+      const lang      = document.getElementById('ai-lang').value;
+
+      btn.disabled = true;
+      btn.textContent = 'Generating…';
+
+      try {
+        const params = new URLSearchParams({
+          ajax: '1',
+          action: 'GenerateDescription',
+          id_product: productId,
+          tone,
+          lang,
+        });
+        const resp = await fetch(`${endpoint}&${params.toString()}`);
+        const data = await resp.json();
+
+        if (data.error) {
+          alert('AI: ' + data.error);
+          return;
+        }
+
+        renderVariants(data.variants);
+      } catch (err) {
+        alert('AI: request failed');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate with AI';
+      }
+    });
+  });
+
+  function renderVariants(variants) {
+    const target = document.getElementById('ai-variants');
+    target.innerHTML = '';
+    variants.forEach((v, i) => {
+      const block = document.createElement('div');
+      block.className = 'ai-variant';
+      block.innerHTML = `
+        <p>${escapeHtml(v)}</p>
+        <button type="button" class="btn btn-primary use-variant" data-variant="${i}">
+          Use this one
+        </button>
+      `;
+      target.appendChild(block);
+    });
+
+    target.querySelectorAll('.use-variant').forEach((b, i) => {
+      b.addEventListener('click', () => {
+        // Write into the PS description field
+        const descField = document.querySelector('#form_step1_description textarea');
+        if (descField) {
+          descField.value = variants[i];
+          descField.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+})();
+```
+
+Vanilla JS, no jQuery, no framework. PrestaShop ships its own jQuery and
+loading another script tag is unnecessary. The "Use this one" button writes
+into the standard PS description field — which means the merchant still has
+to click PS's own save button to commit. That's intentional. The pattern is
+"AI drafts, human ships" — same rule as the support-triage post.
+
+## Failure modes I have hit
+
+**1. The API key in `Configuration::get` got logged to a debug file.**
+PrestaShop's `Configuration` table is logged in some debug paths. Fix: prefix
+secret config keys with `_HIDDEN_` (PS convention) or use environment
+variables read at runtime instead.
+
+**2. The merchant generated 200 descriptions in 10 minutes and the next
+Anthropic bill spiked.** Fix: rate-limit at the controller layer. 20 calls
+per user per hour, tracked in a small `aiassistant_usage` table you create at
+install time. Five lines of code. Save yourself.
+
+**3. The merchant tried to AI-generate a description for an empty product.**
+Claude obliged and hallucinated three variants for "Untitled Product". Fix:
+validate that the product has at least a name + 2 attributes before calling
+Claude. Return 400 with a helpful error if not.
+
+**4. The Smarty template loaded before the form, so the button injected
+into nothing.** Fix: use `DOMContentLoaded` (the JS above already does).
+Don't use `$(document).ready` — PrestaShop's jQuery version varies.
+
+## What this costs to run
+
+For a catalog manager generating 30 product descriptions/day:
+
+- Input tokens: ~600/call × 30 = 18,000/day. With prompt caching: ~3,000
+  billed/day. At Sonnet 4.6 rates, ~5¢/day.
+- Output tokens: ~700/call × 30 = 21,000/day. At Sonnet rates, ~30¢/day.
+- **Total: ~$0.35/day, ~$10/month per active merchant.**
+
+A merchant doing 30 high-quality product descriptions a day, manually, would
+spend hours — easily an order of magnitude more in salary than the AI bill.
+This is the kind of ROI math that converts skeptical store owners on a first
+call.
+
+## Want this in your store?
+
+The full pattern is reproducible. If you want it built and installed in your
+PrestaShop store — including all 5 files, the back-office config UI, the
+rate-limiter, and a Loom walkthrough so your catalog team can hit the
+ground running — that's a 1–2 week scoped engagement on the
+[hire-me page](/hire-me).
+
+Same pattern shape works for Laravel + Filament, Symfony admin panels, and
+custom admin tools. The
+[5-places-to-bolt-AI](/blog/5-places-to-bolt-ai-onto-laravel) post covers the
+Laravel variant.

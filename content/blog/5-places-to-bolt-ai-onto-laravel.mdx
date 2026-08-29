@@ -1,0 +1,262 @@
+---
+title: '5 places to bolt an AI agent onto a PHP/Laravel app without rebuilding'
+date: 2026-05-28
+excerpt: 'You have a Laravel app shipping revenue and a roadmap that suddenly says "add AI". Here are the 5 highest-ROI insertion points — with patterns, code, and the failure modes I have actually hit in production.'
+category: 'Patterns'
+tags: ['Laravel', 'PHP', 'Claude SDK', 'AI agents', 'PrestaShop']
+---
+
+If you run a Laravel or PrestaShop app, "add AI to it" arrived on your roadmap
+sometime in the last twelve months. Probably from a CEO who saw a Claude demo,
+or a customer-success person watching support tickets pile up.
+
+The wrong answer is to rewrite. The right answer is to find the 5 places in
+your existing stack where an LLM call collapses 20 lines of brittle code into
+2 lines of Claude SDK — and start there.
+
+These are the 5 I keep returning to in client work, ranked roughly by how
+fast they break even.
+
+## 1. Support-inbox triage
+
+**The use case.** Every incoming support email goes through Claude before a
+human sees it. The model assigns a category, severity, and language; drafts a
+suggested reply; and routes it to the right inbox. Your team opens 50 emails
+and sees 50 pre-categorized rows with draft answers, not 50 unparsed strings.
+
+**The failure mode if you do it badly.** You let Claude auto-send replies.
+Three months in, the model hallucinates a refund policy that doesn't exist and
+costs you a five-figure chargeback. The fix is a hard rule: **draft yes,
+auto-send no.** Humans approve the draft. The savings come from time-to-first-
+draft, not from removing the human.
+
+**The integration point.** A queued job per inbound email.
+
+```php
+// app/Jobs/TriageSupportEmail.php
+
+public function handle(Anthropic $claude): void
+{
+    $analysis = $claude->messages()->create([
+        'model'    => 'claude-haiku-4-5',
+        'system'   => $this->triagePrompt(),  // cached, 600 tokens
+        'tools'    => $this->triageTools(),   // assign_category, set_severity
+        'messages' => [
+            ['role' => 'user', 'content' => $this->email->raw_body],
+        ],
+    ]);
+
+    $this->email->update([
+        'category'        => $analysis->tool('assign_category')->args['name'],
+        'severity'        => $analysis->tool('set_severity')->args['level'],
+        'draft_reply'     => $analysis->content_text(),
+        'triaged_at'      => now(),
+    ]);
+}
+```
+
+Cost: roughly **$0.0003/email** on Haiku 4.5 with prompt caching. A team
+processing 5,000 support emails a month spends $1.50 to give every one of them
+a pre-categorized draft.
+
+## 2. Product description generation (e-commerce)
+
+**The use case.** Admin panel gets a "Generate description" button next to
+the product editor. The button calls Claude with the product specs, the
+store's tone-of-voice guide, and any existing description. Claude returns 3
+variants. Editor picks one, edits if needed, saves.
+
+This is the lowest-hanging fruit I see for PrestaShop and Shopify stores.
+Catalog managers spend hours a week rewriting descriptions. This collapses to
+minutes.
+
+**The failure mode if you do it badly.** You let Claude invent specs ("100%
+organic cotton" when you sold synthetic). The fix: pass the specs as a
+**structured fact list** in the system prompt, and instruct Claude to
+**never invent attributes outside that list**. Production-tested constraint
+that actually works.
+
+**The integration point.** A single controller action, idempotent by product
+ID + tone.
+
+```php
+// app/Http/Controllers/Admin/DescriptionGeneratorController.php
+
+public function generate(Product $product, Request $request): JsonResponse
+{
+    $variants = $this->claude->messages()->create([
+        'model'    => 'claude-sonnet-4-6',
+        'system'   => $this->copywriterPrompt($request->tone),
+        'messages' => [[
+            'role'    => 'user',
+            'content' => $product->fact_sheet(),  // structured: name, attrs, materials
+        ]],
+        'max_tokens' => 600,
+    ]);
+
+    return response()->json([
+        'variants' => $this->parseVariants($variants->content_text()),
+    ]);
+}
+```
+
+The tone is the parameter that matters. Premium · friendly · technical ·
+minimalist · playful. Same product, five wildly different angles, picker UI.
+
+## 3. Semantic-search fallback
+
+**The use case.** Your existing keyword search is fine for 70% of queries.
+For the other 30% — typos, synonyms, intent-based searches — it returns
+nothing and your bounce rate goes up. You add an embedding-based fallback:
+when keyword search returns fewer than N results, the query gets embedded,
+matched against pre-computed product embeddings, and the top results are
+appended.
+
+You don't replace keyword search. You augment it.
+
+**The failure mode if you do it badly.** You replace keyword search wholesale.
+Now exact-SKU lookups stop working because embedding similarity ranks
+"BLACK-M-FRONT-9382" lower than "black t-shirt". The fix: **augment, never
+replace**. Keyword is fast, exact, and deterministic. Embeddings are slow,
+fuzzy, and probabilistic. They're complements.
+
+**The integration point.** A Laravel scout-driver decorator.
+
+```php
+// app/Search/HybridSearch.php
+
+public function search(string $query, int $threshold = 5): Collection
+{
+    $keyword = Product::search($query)->take(20)->get();
+
+    if ($keyword->count() >= $threshold) {
+        return $keyword;  // keyword had enough, fast path
+    }
+
+    $embedding = $this->embed($query);  // cached, batched
+    $semantic  = $this->vectorIndex->similar($embedding, take: 20 - $keyword->count());
+
+    return $keyword->merge($semantic)->unique('id');
+}
+```
+
+Cheap to run: embeddings cost about **$0.00002/query**. A million queries a
+month is twenty bucks.
+
+## 4. Daily admin summary
+
+**The use case.** Every morning at 7am, the admin panel home screen loads
+with a 3-paragraph summary of the previous day's activity: orders, refunds,
+support tickets, unusual signals. Written by Claude, in your brand voice,
+referencing real numbers.
+
+This is the highest perceived value per dollar of any pattern on this list.
+The owner opens the admin, sees a coherent paragraph saying "Yesterday: 47
+orders (+8% vs Tuesday avg), 2 refund requests both for size issues on
+SKU-9382, support volume normal, one anomaly: 4 abandoned carts at the
+checkout step in the last 3 hours — worth checking the payment provider", and
+the AI bill paid for itself before they finish their coffee.
+
+**The failure mode if you do it badly.** You feed Claude raw database dumps
+and ask it to "find something interesting". It invents trends from noise. The
+fix: **you do the aggregation, Claude does the narrative.** Pre-compute the
+stats. Pass them as a structured digest. Ask Claude to turn them into
+English, not to discover them.
+
+**The integration point.** A scheduled task, run before 7am.
+
+```php
+// app/Console/Commands/DailyAdminDigest.php
+
+public function handle(): void
+{
+    $stats = [
+        'orders'           => $this->dailyOrders(),
+        'refunds'          => $this->dailyRefunds(),
+        'support_volume'   => $this->dailySupportVolume(),
+        'unusual_signals'  => $this->detectAnomalies(),
+    ];
+
+    $narrative = $this->claude->messages()->create([
+        'model'    => 'claude-haiku-4-5',
+        'system'   => $this->editorPrompt(),
+        'messages' => [['role' => 'user', 'content' => json_encode($stats)]],
+    ]);
+
+    AdminDashboard::cacheTodayDigest($narrative->content_text());
+}
+```
+
+## 5. Outbound email personalization
+
+**The use case.** Your abandoned-cart and re-engagement emails currently use
+templated copy: `Hi {{first_name}}, you left items in your cart`. Open rates
+are mid-single-digits.
+
+You add a Claude step: the model gets the customer's last 5 orders, the items
+they abandoned, their average order value, the season. It rewrites the email
+body to lean into the angle most likely to convert *this* customer.
+
+Same template structure, same call-to-action button. Just the body paragraph
+is dynamic per recipient.
+
+**The failure mode if you do it badly.** You let Claude generate the subject
+line too — and your spam complaint rate triples because the model used
+clickbait phrases your sender reputation can't sustain. The fix: **keep the
+subject line and the CTA pinned**. Let Claude work on the body only.
+
+**The integration point.** A queued personalizer running before the
+deliverability tool sends the email.
+
+```php
+// app/Mail/Personalizers/AbandonedCartPersonalizer.php
+
+public function personalize(Cart $cart, User $user): string
+{
+    $context = [
+        'abandoned_items'     => $cart->items->toFactSheet(),
+        'recent_orders'       => $user->recentOrders(5)->toFactSheet(),
+        'avg_order_value_eur' => $user->avgOrderValue(),
+    ];
+
+    return $this->claude->messages()->create([
+        'model'      => 'claude-haiku-4-5',
+        'system'     => $this->copywriterPrompt(template: 'abandoned_cart'),
+        'messages'   => [['role' => 'user', 'content' => json_encode($context)]],
+        'max_tokens' => 240,
+    ])->content_text();
+}
+```
+
+A/B test it against the template baseline before rolling out fully. I have
+seen lift between 18% and 40% in open-to-click conversion on abandoned-cart
+sequences, but your results depend entirely on the quality of your customer
+data.
+
+## What unites all five patterns
+
+Look at the code. None of them needed a new framework, a vector database, a
+"AI platform", or a rewrite. Each is a single class with a single Claude
+call, dropped into the existing Laravel app like any other Service.
+
+That's the actual playbook for adding AI to a production app:
+
+1. **Find the place where the existing code is brittle, slow, or expensive.**
+2. **Wrap the brittle bit in a queued job or controller action.**
+3. **Replace its body with one Claude SDK call.**
+4. **Add structured constraints in the system prompt** so the model can't
+   invent things outside the facts you pass it.
+5. **Keep the human in the loop** anywhere a hallucination would cost more
+   than a draft.
+
+If you have a Laravel or PrestaShop app shipping revenue and you want to add
+one of these patterns without burning down what works,
+[email me a brief](mailto:me@bak-dev.com?subject=%5BHire%5D%20AI%20feature%20retrofit).
+I do exactly this for a living: scope, build, ship, inside your codebase.
+2–4 weeks fixed-scope. The shape is documented on the
+[hire-me page](/hire-me).
+
+Or, if you want to see what the same patterns look like across the full
+agent-system stack instead of one feature at a time, the source for
+[Career-OS](https://github.com/akrambak/career-os) — the AI-agent dashboard
+I run my own job search through — is MIT-licensed on GitHub.

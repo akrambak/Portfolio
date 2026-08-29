@@ -1,0 +1,239 @@
+---
+title: 'How I evaluate Claude SDK features before shipping them to production'
+date: 2026-05-28
+excerpt: 'Most "AI feature" projects skip the eval harness — and then silently regress for weeks before someone notices. Here is the production pattern I use: fixture-based regression tests with tolerance bands, run on every prompt change and every Anthropic model update.'
+category: 'Patterns'
+tags: ['Claude SDK', 'AI agents', 'Testing', 'Prompt engineering', 'Production']
+---
+
+The riskiest line of code in your codebase is not the database transaction or
+the third-party API call. It's the LLM prompt — because when it silently
+regresses, **nothing visible breaks**. The endpoint still returns 200. The
+JSON still parses. Test suite still green. The model just started giving
+worse answers, and you find out from a customer.
+
+I have shipped enough Claude SDK features in production to be afraid of this.
+Here is the eval harness pattern I now ship with every LLM-powered feature.
+It takes about an hour to build per feature and has saved me from at least
+three subtle regressions in Career-OS alone.
+
+## The risk you can't see
+
+A normal regression looks like this: you change a function, a test fails,
+you fix it.
+
+An LLM regression looks like this: you tweak the system prompt to fix a tone
+issue on Monday. The fix works. Three weeks later, your scoring drift down by
+12% on a class of inputs you didn't think about. No test failed. No alert
+fired. You only notice because a downstream metric (apply-rate, conversion,
+support-ticket close time) is off, and that's *if* you're watching.
+
+The four common silent regressions I have personally hit:
+
+1. **Tweaking the system prompt broke a tone you weren't testing.** You
+   added "be friendly" and lost "be precise about prices."
+2. **A new Anthropic model version (e.g. Sonnet 4.5 → 4.6) calibrated
+   differently.** Same prompt, same input, different score by 8 points.
+3. **A library upgrade silently dropped a parameter** (max_tokens, temperature).
+   Defaults kicked in. Outputs got longer and looser.
+4. **Cache invalidation drift.** You added a field to the system prompt;
+   the cache hash changed; cost per call jumped 6× before you noticed.
+
+All four are invisible to unit tests. All four are caught by a single eval
+harness that takes a few hours to build.
+
+## The pattern
+
+You need three things:
+
+1. **A fixtures file** — frozen inputs with expected outputs.
+2. **A scorer** — measures how far each actual output drifted from expected.
+3. **A runner** — replays every fixture through the live model, fails the
+   build if any fixture drifted past tolerance.
+
+That's it. No fancy framework. Anything more is YAGNI.
+
+## Step 1 — Fixtures
+
+Pick 8–15 hand-labeled cases. Cover the edge cases you actually care about,
+not just the happy path. For a job-fit scorer, mine looks like:
+
+```jsonl
+// tests/fixtures/scored_jobs.jsonl
+
+{"id":"f001","input":{...},"expected":{"fit":88,"angle":"strong fullstack + AI"},"tolerance":{"fit":5}}
+{"id":"f002","input":{...},"expected":{"fit":35,"angle":"junior role, decline"},"tolerance":{"fit":5}}
+{"id":"f003","input":{...},"expected":{"fit":72,"angle":"good freelance fit"},"tolerance":{"fit":7}}
+{"id":"f004","input":{...},"expected":{"fit":15,"angle":"crypto, disqualify"},"tolerance":{"fit":3}}
+// …
+```
+
+Per-fixture tolerance is the move I most often see skipped. Different inputs
+have different acceptable variance. A clear "strong fit" might tolerate ±5
+points. A clear "disqualify" should be tight — ±3 — because we want certainty
+on rejection. A borderline case might tolerate ±10 because it's genuinely
+ambiguous.
+
+Label them yourself. Don't generate fixtures with another LLM. The whole
+point is that you, the human, know what right looks like.
+
+## Step 2 — Scorer
+
+For structured-output features, the scorer is plain arithmetic.
+
+```python
+# tests/eval/score_fit.py
+
+def score(actual: dict, expected: dict, tolerance: dict) -> EvalResult:
+    fit_delta = abs(actual["fit"] - expected["fit"])
+    fit_ok = fit_delta <= tolerance.get("fit", 5)
+
+    angle_overlap = jaccard(
+        tokenize(actual["angle"]),
+        tokenize(expected["angle"]),
+    )
+    angle_ok = angle_overlap >= 0.3
+
+    return EvalResult(
+        passed=fit_ok and angle_ok,
+        fit_delta=fit_delta,
+        angle_overlap=angle_overlap,
+    )
+```
+
+For free-form outputs (cover letters, descriptions), don't try to match the
+text exactly. Score for **constraints**:
+
+- Did it use the requested language?
+- Did it stay under the word count?
+- Did it mention every required fact?
+- Did it avoid the forbidden phrases?
+
+These are deterministic checks against the output text. They're easier to
+write than people fear. For Career-OS's outreach drafter:
+
+```python
+def score_outreach(actual: str, expected: dict) -> EvalResult:
+    return EvalResult(
+        passed=all([
+            language_matches(actual, expected["language"]),
+            word_count(actual) <= expected["max_words"],
+            all(fact in actual for fact in expected["required_facts"]),
+            not any(phrase in actual.lower() for phrase in expected["forbidden_phrases"]),
+        ]),
+    )
+```
+
+You can also do an "LLM-as-judge" pattern for fuzzy criteria — but only as a
+last resort. It's slower, more expensive, and adds another silent-regression
+surface (the judge model can drift too). Use deterministic checks whenever
+the criterion is decidable.
+
+## Step 3 — Runner
+
+A 30-line script that loops fixtures, calls the feature live, scores each one,
+prints a summary table.
+
+```python
+# tests/eval/run.py
+
+import json
+from pathlib import Path
+from rich.table import Table
+from rich.console import Console
+
+from career_os.scorer import score_job
+from tests.eval.score_fit import score as eval_one
+
+console = Console()
+fixtures = [json.loads(line) for line in Path("tests/fixtures/scored_jobs.jsonl").read_text().splitlines() if line.strip()]
+
+table = Table(title="Eval results")
+table.add_column("id"); table.add_column("expected_fit"); table.add_column("actual_fit"); table.add_column("delta"); table.add_column("status")
+
+failed = 0
+for fx in fixtures:
+    actual = score_job(fx["input"])           # the live call
+    res = eval_one(actual.dict(), fx["expected"], fx["tolerance"])
+    status = "[green]PASS" if res.passed else "[red]FAIL"
+    if not res.passed: failed += 1
+    table.add_row(fx["id"], str(fx["expected"]["fit"]), str(actual.fit), str(res.fit_delta), status)
+
+console.print(table)
+console.print(f"\n[red]{failed}[/red] failed of {len(fixtures)}" if failed else f"[green]all {len(fixtures)} passed[/green]")
+exit(1 if failed else 0)
+```
+
+The `exit(1 if failed else 0)` is what makes this an actual test, not just a
+debugging tool. Wire it into CI.
+
+## Wiring it into CI
+
+```yaml
+# .github/workflows/eval.yml
+
+name: eval
+on:
+  pull_request:
+    paths: ['src/career_os/scorer/**', 'tests/fixtures/**']
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -e ".[dev]"
+      - run: python tests/eval/run.py
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+This runs the eval on every PR that touches the scorer or the fixtures. It
+costs a few cents per run. It catches all four silent-regression categories.
+
+## When to extend the harness
+
+You will hit cases the eval can't catch. That's fine — every catch is a new
+fixture. The discipline:
+
+- **Bug reported in production?** Add a fixture that reproduces it. Fix.
+  Eval now catches the regression next time.
+- **You hand-tuned the prompt for 3 hours?** Save 5 of those tuning cases as
+  fixtures with the now-correct expected outputs.
+- **Anthropic ships a new model?** Run the eval against the new model before
+  bumping it in production. The delta tells you whether the new model is a
+  free upgrade or a calibration redo.
+
+The fixtures grow with the system. After a year, you have a regression suite
+that encodes most of what you know about how the feature *should* behave —
+and any future engineer (or future-you, three months from now) can change
+the prompt with confidence because the eval will catch them if they break it.
+
+## What this is worth to a client
+
+Most teams shipping LLM features today do not have this. They ship a Claude
+call, watch metrics, hope. When the system slowly degrades, they can't tell
+whether it was the prompt change, the model bump, the user-input distribution
+shift, or something else entirely. Triage time on a silent LLM regression in
+production is measured in days.
+
+A 4-hour investment in an eval harness collapses that to minutes. If you
+ship a Claude feature without one, you are building technical debt you can't
+see and can't measure.
+
+If you have a Laravel / PrestaShop / Python app shipping an AI feature and
+nobody has built the eval harness for it yet, that is a 1-week scoped
+engagement I take on. The shape is on the [hire-me page](/hire-me).
+
+For the full architecture context where this pattern lives — including the
+fixture file format and the eval runner — see the
+[Career-OS architecture walkthrough](/blog/career-os-architecture). The same
+discipline applies to the Laravel patterns in
+[5 places to bolt AI](/blog/5-places-to-bolt-ai-onto-laravel) and the
+PrestaShop module in
+[the 5-file pattern](/blog/claude-agent-prestashop-5-files) — every Claude
+call in those posts is a place where the eval harness pattern earns its
+keep.
