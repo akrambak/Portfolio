@@ -1,86 +1,480 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
-/* Import PrismJS theme for syntax highlighting */
-@import 'prism-themes/themes/prism-vsc-dark-plus.css';
+@custom-variant dark (&:where(.dark, .dark *));
 
+/* ── Instrument palette ─────────────────────────────────────────────
+   Paper / ink / graphite carry the page. `signal` is the only hue and
+   is rationed: hairline accents, links, one filled control per view. */
 :root {
-  /* Light mode: Keep a light base but maybe slightly off-white? */
-  --background: #f8fafc; /* cool gray 50 */
-  --foreground: #111827; /* gray 900 */
+  --paper: #fbfaf7;
+  --paper-raised: #ffffff;
+  --paper-sunken: #f2f0ea;
+  --ink: #12161b;
+  --graphite: #4a525c;
+  --faint: #6b7480;
+  --rule: rgb(18 22 27 / 0.13);
+  --rule-strong: rgb(18 22 27 / 0.28);
+  --signal: #2547d0;
+  --signal-hover: #1a36a8;
+  --signal-wash: rgb(37 71 208 / 0.08);
+  --signal-edge: rgb(37 71 208 / 0.38);
+  --hero-line: rgb(18 22 27 / 0.16);
+  --hero-line-strong: rgb(18 22 27 / 0.32);
+  --hero-wash: rgb(37 71 208 / 0.20);
 
-  /* Define gradient stops using direct hex/rgb values */
-  /* Values from tailwind.config.ts: colors.purple[600] and colors.pink[500] */
-  --gradient-start: #9333ea;
-  --gradient-end: #ec4899;
+  /* Inverted band. In light mode it is ink; in dark mode a raised charcoal,
+     so the band always reads as a distinct field against the page. */
+  --band-bg: #12161b;
+  --band-raised: #1b2129;
+  --band-sunken: #0c1014;
+  --band-fg: #f5f6f7;
+  --band-muted: #9aa3ae;
+  --band-faint: #79828d;
+  --band-rule: rgb(245 246 247 / 0.15);
+  --band-rule-strong: rgb(245 246 247 / 0.32);
+  --band-signal: #7ea0ff;
+  /* Gain figures only, and only on a dark band: 14.6:1 there, unusable on paper. */
+  --gain: #d9f24b;
+  --on-signal: #ffffff;
+}
+
+.dark {
+  --paper: #12161b;
+  --paper-raised: #171d24;
+  --paper-sunken: #0d1116;
+  --ink: #f2f3f5;
+  --graphite: #99a2ad;
+  --faint: #79828d;
+  --rule: rgb(242 243 245 / 0.13);
+  --rule-strong: rgb(242 243 245 / 0.3);
+  --signal: #7ea0ff;
+  --signal-hover: #a3bcff;
+  --signal-wash: rgb(126 160 255 / 0.12);
+  --signal-edge: rgb(126 160 255 / 0.42);
+  --hero-line: rgb(242 243 245 / 0.13);
+  --hero-line-strong: rgb(242 243 245 / 0.28);
+  --hero-wash: rgb(126 160 255 / 0.22);
+
+  --band-bg: #1b222b;
+  --band-raised: #242c37;
+  --band-sunken: #141a21;
+  --band-fg: #f5f6f7;
+  --band-muted: #9aa3ae;
+  --band-faint: #79828d;
+  --band-rule: rgb(245 246 247 / 0.14);
+  --band-rule-strong: rgb(245 246 247 / 0.30);
+  --band-signal: #7ea0ff;
+  --gain: #d9f24b;
+  --on-signal: #0b0e12;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-raised: var(--paper-raised);
+  --color-sunken: var(--paper-sunken);
+  --color-ink: var(--ink);
+  --color-graphite: var(--graphite);
+  --color-faint: var(--faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-signal: var(--signal);
+  --color-signal-hover: var(--signal-hover);
+  --color-signal-wash: var(--signal-wash);
+  --color-signal-edge: var(--signal-edge);
+  --color-hero-line: var(--hero-line);
+  --color-hero-line-strong: var(--hero-line-strong);
+  --color-gain: var(--gain);
+
+  --text-display: clamp(2.25rem, 7.5vw, 6.5rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.04em;
+  --text-mega: clamp(2rem, 5.5vw, 4.25rem);
+  --text-mega--line-height: 1;
+  --text-mega--letter-spacing: -0.035em;
+  --color-on-signal: var(--on-signal);
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1;
+  --text-eyebrow--letter-spacing: 0.14em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark mode: Use a very dark gray, not pure black */
-    --background: #1f2937; /* gray 800 */
-    --foreground: #f9fafb; /* gray 50 */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light;
+  }
 
-    /* Override gradient stops for dark mode if needed, or use the same */
-    /* --gradient-start: #some_other_color; */
-    /* --gradient-end: #another_color; */
-    /* Keep the same gradient for dark mode for now */
-    --gradient-start: #9333ea;
-    --gradient-end: #ec4899;
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: var(--signal-wash);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Figures line up in columns wherever they appear. */
+  .font-mono,
+  time,
+  th,
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--rule-strong);
+    border: 3px solid var(--paper);
+    border-radius: 6px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--graphite);
   }
 }
 
-body {
-  /* Apply the vibrant gradient background */
-  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
-  background-attachment: fixed; /* Keep gradient fixed during scroll */
-  color: var(--foreground);
-  font-family: var(--font-sans); /* Use the font variable from layout */
+/* ── MDX prose ─────────────────────────────────────────────────────── */
+.prose {
+  --tw-prose-body: var(--graphite);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-lead: var(--graphite);
+  --tw-prose-links: var(--ink);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-counters: var(--faint);
+  --tw-prose-bullets: var(--rule-strong);
+  --tw-prose-hr: var(--rule);
+  --tw-prose-quotes: var(--ink);
+  --tw-prose-quote-borders: var(--signal);
+  --tw-prose-captions: var(--faint);
+  --tw-prose-code: var(--ink);
+  --tw-prose-th-borders: var(--rule-strong);
+  --tw-prose-td-borders: var(--rule);
 }
 
-/* Add any other global styles or overrides here */
-
-/* Example: Style scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.prose :where(h2, h3, h4) {
+  scroll-margin-top: 6rem;
 }
 
-::-webkit-scrollbar-track {
-  background: theme('colors.gray.100');
-  border-radius: 10px;
-}
-.dark ::-webkit-scrollbar-track {
-  background: theme('colors.gray.800');
+.prose :where(a) {
+  text-decoration-color: var(--signal);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: theme('colors.gray.400');
-  border-radius: 10px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: theme('colors.gray.600');
+.prose :where(a):hover {
+  color: var(--signal);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: theme('colors.gray.500');
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: theme('colors.gray.500');
+.prose :where(code):not(pre code) {
+  background-color: var(--paper-sunken);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+  font-weight: 450;
+  font-size: 0.875em;
 }
 
-/* Ensure code blocks in prose have appropriate background/padding */
-.prose pre,
-.prose-invert pre {
-  /* Use theme colors defined in tailwind.config.ts for consistency if needed */
-  /* background-color: theme('colors.gray.900 / var(--tw-bg-opacity)'); */
-  padding: theme('spacing.4');
-  border-radius: theme('borderRadius.lg');
-  overflow-x: auto;
+.prose :where(code):not(pre code)::before,
+.prose :where(code):not(pre code)::after {
+  content: none;
+}
+
+.prose :where(blockquote) {
+  border-left-width: 2px;
+  font-style: normal;
+  font-weight: 450;
+}
+
+/* shiki dual-theme: swap the token colours with the site theme. */
+.prose :where(pre) {
+  background-color: var(--paper-sunken) !important;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+}
+
+.dark .prose :where(pre) span {
+  color: var(--shiki-dark) !important;
+}
+
+[data-rehype-pretty-code-figure] pre [data-line] {
+  padding-inline: 1.1rem;
+}
+
+/* ── Hero band ──────────────────────────────────────────────────────
+   A full-bleed instrument face behind the hero: a soft wash, a drafting
+   column grid, registration marks and a measuring rule, each on its own
+   depth. Parallax is scroll-driven — no listeners, no rAF, no JS. */
+.hero-wash {
+  background: radial-gradient(72rem 46rem at 74% 8%, var(--hero-wash), transparent 66%);
+}
+
+/* Coarse plate grid — the deep plane. Cross-hatched, because a moving grid
+   is what makes the depth readable; a moving wash reads as nothing. */
+.hero-grid-coarse {
+  background-image:
+    repeating-linear-gradient(to right, var(--hero-line) 0 1px, transparent 1px 88px),
+    repeating-linear-gradient(to bottom, var(--hero-line) 0 1px, transparent 1px 88px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 2%, #000 22%, #000 62%, transparent 92%);
+  mask-image: linear-gradient(to bottom, transparent 2%, #000 22%, #000 62%, transparent 92%);
+}
+
+/* Fine scale — a mid plane at a different pitch, so the two grids shear past
+   each other as you scroll. That shear is the effect. */
+.hero-grid-fine {
+  background-image: repeating-linear-gradient(to right, var(--hero-line) 0 1px, transparent 1px 24px);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 26%, #000 44%, #000 56%, transparent 74%);
+  mask-image: linear-gradient(to bottom, transparent 26%, #000 44%, #000 56%, transparent 74%);
+}
+
+/* A single signal trace across the plate. The most legible depth cue in the
+   composition: one high-contrast line crossing fixed content. */
+.hero-scan {
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--signal-edge) 16%,
+    var(--signal-edge) 58%,
+    transparent 92%
+  );
+}
+
+/* Instrument geometry: a dial face and two plotted traces. Large, slow-moving
+   forms give the eye something to track — that is what reads as depth. */
+.hero-arcs {
+  color: var(--hero-line-strong);
+}
+
+.hero-trace {
+  color: var(--signal);
+  filter: drop-shadow(0 0 14px var(--signal-edge));
+}
+
+.hero-trace-dim {
+  color: var(--hero-line-strong);
+}
+
+.hero-ruler {
+  background-image:
+    repeating-linear-gradient(to right, var(--hero-line-strong) 0 1px, transparent 1px 10px);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 46%, transparent 86%);
+  mask-image: linear-gradient(to right, #000 0%, #000 46%, transparent 86%);
+}
+
+@keyframes parallax {
+  to {
+    transform: translate3d(var(--depth-x, 0), var(--depth), 0)
+      scale(var(--depth-scale, 1));
+  }
+}
+
+/* Progressive enhancement: without scroll timelines the layers simply
+   hold their position, which is the same composition minus the depth. */
+/* The timeline is split into its own rule on purpose: Lightning CSS folds
+   adjacent longhands into the `animation` shorthand, and `animation-timeline`
+   is reset-only there — merged, it silently disables the whole effect. The
+   zero-specificity `:where(*)` keeps the two rules unmergeable. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .parallax {
+      animation: parallax linear both;
+      will-change: transform;
+    }
+
+    .parallax:where(*) {
+      animation-duration: auto;
+      animation-timeline: scroll(root block);
+      animation-range: 0 145vh;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────
+   One orchestrated load sequence, then nothing until you scroll.
+   Scroll reveals are progressive enhancement: without support the
+   content is simply already there. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-rise {
+  animation: rise 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+}
+
+/* A charge travelling the connector: the one ambient motion on the page. */
+@keyframes flow {
+  0% {
+    transform: translateY(-140%);
+    opacity: 0;
+  }
+  25%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(340%);
+    opacity: 0;
+  }
+}
+
+.animate-flow {
+  animation: flow 2.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.animate-draw {
+  transform-origin: left;
+  animation: draw 0.6s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise linear both;
+    }
+
+    .reveal:where(*) {
+      animation-duration: auto;
+      animation-timeline: view();
+      animation-range: entry 10% cover 22%;
+    }
+  }
+}
+
+/* ── Bands ──────────────────────────────────────────────────────────
+   A band re-points the semantic tokens rather than restyling anything.
+   Every component inside inverts for free — that is the whole reason
+   the palette is tokens and not `dark:` variants. */
+.band-invert {
+  --paper: var(--band-bg);
+  --paper-raised: var(--band-raised);
+  --paper-sunken: var(--band-sunken);
+  --ink: var(--band-fg);
+  --graphite: var(--band-muted);
+  --faint: var(--band-faint);
+  --rule: var(--band-rule);
+  --rule-strong: var(--band-rule-strong);
+  --signal: var(--band-signal);
+  --signal-hover: #a3bcff;
+  --signal-wash: rgb(126 160 255 / 0.14);
+  --signal-edge: rgb(126 160 255 / 0.42);
+  --on-signal: #0b0e12;
+  --hero-line: rgb(245 246 247 / 0.10);
+  --hero-line-strong: rgb(245 246 247 / 0.24);
+  --hero-wash: rgb(126 160 255 / 0.20);
+  background-color: var(--band-bg);
+  color: var(--band-fg);
+}
+
+.band-sunken {
+  background-color: var(--paper-sunken);
+}
+
+/* ── Kinetic display type ───────────────────────────────────────────
+   The headline is plotted, not faded: a hard clip edge sweeps each line
+   left to right, the way a pen plotter lays down a stroke. */
+@keyframes plot {
+  from {
+    clip-path: inset(-0.25em 100% -0.35em 0);
+  }
+  to {
+    clip-path: inset(-0.25em -0.18em -0.35em 0);
+  }
+}
+
+.plot-line {
+  animation: plot 0.85s cubic-bezier(0.22, 0.7, 0.16, 1) backwards;
+}
+
+/* ── Counting numerals ──────────────────────────────────────────────
+   An integer ticker with no JavaScript. Without @property support the
+   custom property is not interpolable, so it lands on the final value
+   immediately — still correct, just not animated. */
+@property --num {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: false;
+}
+
+@keyframes tick {
+  to {
+    --num: var(--to);
+  }
+}
+
+.ticker {
+  counter-reset: num var(--num);
+  animation: tick 1.4s cubic-bezier(0.16, 0.8, 0.24, 1) both;
+}
+
+.ticker::after {
+  content: counter(num);
 }

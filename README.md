@@ -1,8 +1,8 @@
 # Akram Bakhouche — Portfolio
 
-Personal portfolio for a Fullstack Web & Mobile Developer, built with the Next.js App Router. It features a bilingual (EN/FR) interface, light/dark theming, an MDX-powered blog, animated page transitions, and a contact form.
+Personal site for a fullstack engineer working on AI systems: Claude-SDK agents wired into production Laravel and PrestaShop apps. Built on the Next.js App Router, bilingual EN/FR (SSR), light/dark, MDX blog.
 
-**Live focus:** showcase profile, skills, PrestaShop modules, themes, project portfolio, and blog.
+**Design direction — "instrument panel."** The page reads as a precision datasheet: hairline rules, monospace data, tabular numerals, generous whitespace, and a single rationed accent. Sober enough for a technical recruiter's first scan; specific enough to convert a client lead.
 
 ## Tech Stack
 
@@ -10,13 +10,14 @@ Personal portfolio for a Fullstack Web & Mobile Developer, built with the Next.j
 | --- | --- |
 | Framework | [Next.js 15](https://nextjs.org) (App Router, Turbopack dev server) |
 | Language | TypeScript 5, React 19 |
-| Styling | Tailwind CSS v4 + `@tailwindcss/typography` (pink accent) |
-| Animation | [Framer Motion](https://www.framer.com/motion/) |
+| Styling | Tailwind CSS v4, **CSS-first** (`@theme` in `globals.css`) + `@tailwindcss/typography` |
+| i18n | [`next-intl`](https://next-intl.dev) — SSR, `locale` cookie |
 | Theming | [next-themes](https://github.com/pacocoursey/next-themes) (class strategy, system default) |
-| Content | MDX via `next-mdx-remote` + `gray-matter` |
-| Syntax highlighting | Prism (`prismjs`, `prism-themes`) |
-| Icons | `react-icons` |
-| Fonts | Geist Sans / Geist Mono (`geist`) |
+| Content | MDX via `next-mdx-remote/rsc` + `gray-matter` |
+| Syntax highlighting | `rehype-pretty-code` + `shiki` (dual light/dark theme) |
+| Motion | CSS only — no animation library |
+| Icons | Inline SVG (`src/components/icons.tsx`) |
+| Fonts | Archivo (display) + Geist Sans / Geist Mono, self-hosted via `next/font` |
 | Analytics | Google Tag Manager |
 
 ## Getting Started
@@ -28,98 +29,103 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-### Scripts
-
 | Script | Description |
 | --- | --- |
-| `npm run dev` | Start the dev server with Turbopack (port 3000) |
+| `npm run dev` | Dev server with Turbopack (port 3000) |
 | `npm run build` | Production build |
 | `npm run start` | Serve the production build on **port 3100** |
-| `npm run lint` | Run ESLint (`eslint-config-next`) |
+| `npm run lint` | ESLint (`eslint-config-next`) |
 
 ## Project Structure
 
 ```
 src/
-├── app/                     # App Router routes
-│   ├── layout.tsx           # Root layout: fonts, GTM, ThemeProvider, <Layout>
-│   ├── page.tsx             # Home (hero, skills, highlights, testimonials)
-│   ├── about/               # About
-│   ├── modules/             # PrestaShop modules
-│   ├── themes/              # Themes showcase
-│   ├── portfolio/           # Project portfolio
-│   ├── blog/                # Blog index + [slug] post pages
-│   ├── contact/             # Contact page
-│   └── api/contact/route.ts # POST endpoint for the contact form
-├── components/              # Navbar, Footer, Layout, cards, ThemeToggle, etc.
-└── lib/
-    ├── mdxUtils.ts          # Server-only MDX reading/serialization
-    └── i18n/                # Client-side translation system (en/fr)
+├── app/
+│   ├── layout.tsx           # Fonts, metadata, GTM, JSON-LD, providers, Shell
+│   ├── page.tsx             # Home
+│   ├── work/                # Case studies + capability record (?c= filters)
+│   ├── blog/                # Writing index + [slug] post pages
+│   ├── about/               # Bio, stack, principles
+│   ├── contact/             # Form + direct channels
+│   ├── not-found.tsx        # 404
+│   ├── sitemap.ts           # sitemap.xml
+│   ├── robots.ts            # robots.txt
+│   ├── opengraph-image.tsx  # Generated social card
+│   ├── globals.css          # Design tokens + base + prose + motion
+│   └── api/contact/route.ts # POST endpoint (honeypot + validation)
+├── components/
+│   ├── ui.tsx               # Container, SectionHeader, DataSheet, PageHeader, links
+│   ├── rows.tsx             # WorkRow, PostRow
+│   ├── Shell.tsx, Nav.tsx, Footer.tsx, icons.tsx
+│   └── ThemeToggle.tsx, LocaleToggle.tsx, ContactForm.tsx
+├── config/site.ts           # Identity + external links (single source of truth)
+├── content/work.ts          # Work entries (structure; copy lives in messages/)
+├── i18n/                    # next-intl config + request handler
+└── lib/mdxUtils.ts          # server-only MDX reading, reading time, adjacency
 content/blog/                # Blog posts (*.mdx)
-public/                      # Static assets & placeholder images
-memory-bank/                 # Project context docs (see below)
+messages/{en,fr}.json        # All UI copy
+memory-bank/                 # Project context docs
 ```
 
-## Internationalization
+## Design tokens
 
-Language switching is **client-side** and does not use locale-prefixed routes. State lives in `localStorage` under the `locale` key (`en` | `fr`).
+There is **no `tailwind.config.ts`** — Tailwind v4 does not auto-load one, and the previous config was silently dead.
 
-- Translation strings: `src/lib/i18n/translations/{en,fr}.json`
-- Hook: `useTranslation()` from `@/lib/i18n` exposes `t('dotted.key')`, the current `locale`, and `changeLocale()`
-- UI: `LanguageSwitcher` toggles the locale and calls `router.refresh()` to re-render
+The whole palette is defined twice in `src/app/globals.css` — once on `:root`, once on `.dark` — and mapped through `@theme inline`. Components use semantic utilities only:
 
-Components that read translations render `null` until mounted to avoid hydration mismatches.
+`bg-paper` · `bg-raised` · `bg-sunken` · `text-ink` · `text-graphite` · `text-faint` · `border-rule` · `border-rule-strong` · `bg-signal` · `text-signal` · `bg-signal-wash` · `text-on-signal`
 
-> Note: the `i18n` block in `next.config.ts` is a Pages-Router artifact and is **not** used by the App Router runtime — the working mechanism is the client-side system described above.
+> **Do not add `dark:` variants.** Add or reuse a token — the `.dark` block flips the entire site at once. Every foreground/background pair is verified at ≥4.5:1 in both modes.
 
-### Adding a translation
+Type roles: `font-display` (Archivo, ≥28px only), `font-sans` (Geist Sans, body), `font-mono` (Geist Mono, all labels and data). `text-eyebrow` is the small uppercase mono label used throughout.
 
-Add the same key to both `en.json` and `fr.json`, then read it with `t('your.new.key')`.
+## Motion
 
-## Theming
+CSS only. One staggered `animate-rise` sequence on page load; `.reveal` scroll animation is progressive enhancement behind `@supports (animation-timeline: view())`, so unsupported browsers simply show the content. `prefers-reduced-motion` is honoured globally in `globals.css`.
 
-`next-themes` drives light/dark/system modes via the `class` strategy (configured in `src/app/layout.tsx`). `ThemeToggleButton` switches themes; Tailwind `dark:` variants handle styling.
+## Content
 
-## Blog (MDX)
+### Links and identity
 
-Posts live in `content/blog/*.mdx` and are read server-side by `src/lib/mdxUtils.ts` (`server-only`).
+Everything external lives in `src/config/site.ts`. **An empty value renders nothing** — social icons, the Calendly block and the `sameAs` JSON-LD all disappear rather than shipping a dead link. Fill in `linkedin`, `github`, `calendly` and they appear.
 
-Frontmatter shape:
+### Work entries
+
+Structure (slug, category, year, stack, metric, link) goes in `src/content/work.ts`; copy goes in `messages/{en,fr}.json` under `work.items.<slug>`. Entries with `status: "draft"` are never rendered — add the copy, flip the status, and the entry appears.
+
+### Blog posts
+
+Drop a `.mdx` file into `content/blog/`:
 
 ```yaml
 ---
 title: "Post title"
-date: 2025-05-01
+date: 2026-05-28
 excerpt: "Short summary"
-category: "Optional"
-tags: ["optional", "tags"]
+category: "Patterns"
+tags: ["Claude SDK", "PHP"]
 ---
 ```
 
-- `getSortedPostsData()` — index, newest first
-- `getPostData(slug)` — single post, serialized with `next-mdx-remote`
+Reading time is computed, and the category becomes a filter on `/blog` automatically.
 
-Add a post by dropping a new `.mdx` file into `content/blog/`.
+### Translations
+
+Add the same key to both `messages/en.json` and `messages/fr.json`. Key parity is not optional — a missing key throws at render. Multi-item strings (capability points, principles, story paragraphs) are pipe-delimited (`|`) and split at render.
 
 ## Contact Form
 
-`ContactForm` posts to `POST /api/contact`, which validates `name`, `email`, `subject`, and `message`.
+`ContactForm` posts to `POST /api/contact`, which drops honeypot submissions and validates `name`, `email`, `subject`, `message`.
 
-> The API route currently **logs** submissions server-side; wiring an email provider (e.g. Resend, SendGrid, Nodemailer) is a documented TODO in `src/app/api/contact/route.ts`.
+> The route currently **logs** submissions. Wiring an email provider (Resend, Postmark, SES) is a documented TODO in `src/app/api/contact/route.ts`.
 
-## Analytics
+## Routing
 
-Google Tag Manager (container `GTM-MD68KMQC`) is injected in `src/app/layout.tsx` via `next/script`, with the `<noscript>` fallback in `<body>`.
+`/portfolio`, `/modules` and `/themes` 308-redirect into `/work` (the last two with a category filter) — see `next.config.ts`.
 
 ## Deployment
 
-Optimized for [Vercel](https://vercel.com/new). `npm run build` produces a standard Next.js build. If self-hosting, note `npm run start` binds to **port 3100**.
-
-## memory-bank/
-
-`memory-bank/` holds structured project context (brief, product, system patterns, tech, active context, progress) consumed by AI coding tools. Keep it current when project scope or status changes.
+`npm run build` produces a standard Next.js build. Self-hosting: `npm run start` binds to **port 3100**. Set `site.url` in `src/config/site.ts` to the production domain — sitemap, canonical URLs and JSON-LD all derive from it.
 
 ## License
 

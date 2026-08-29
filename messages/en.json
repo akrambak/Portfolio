@@ -1,62 +1,203 @@
 {
-  "navigation": {
-    "home": "Home",
+  "meta": {
+    "role": "Fullstack engineer · AI systems",
+    "description": "I wire Claude-SDK agents into Laravel and PrestaShop systems that already carry revenue — with eval harnesses, cost budgets, and no rewrite."
+  },
+  "nav": {
+    "primary": "Primary",
+    "secondary": "Site",
+    "menu": "Menu",
+    "work": "Work",
+    "writing": "Writing",
     "about": "About",
-    "portfolio": "Portfolio",
-    "blog": "Blog",
-    "contact": "Contact",
-    "modules": "Modules",
-    "themes": "Themes"
+    "contact": "Contact"
   },
-  "hero": {
-    "greeting": "Hello, I'm",
-    "role": "Software Developer",
-    "tagline": "Fullstack Flutter mobile PHP Laravel PrestaShop Developer"
+  "controls": {
+    "toggleTheme": "Switch colour scheme",
+    "skipToContent": "Skip to content"
   },
-  "profile": {
-    "name": "Akram Bakhouche",
-    "imagePlaceholder": "Image Placeholder"
-  },
-  "aboutSection": {
-    "title": "About Me",
-    "description": "I'm a passionate software developer dedicated to creating elegant solutions to complex problems.",
-    "summary": "Passionate web and mobile developer with 8 years of experience building full-stack applications. Expert in PrestaShop/PHP, with strong skills in Vue, Flutter, Dart, and Firebase."
-  },
-  "skillsSection": {
-    "title": "Skills & Expertise"
-  },
-  "skills": {
-    "fullstack": "Fullstack Development (end-to-end projects)",
-    "backend": "Backend (PHP/Laravel/CodeIgniter) & API development",
-    "frontend": "Frontend (HTML5, CSS3/SASS, JavaScript/jQuery)",
-    "ecommerce": "E-commerce (PrestaShop site creation)",
-    "mobile": "Mobile & Web Apps (Flutter, Vue, Firebase)",
-    "prestashop": "Prestashop Module Development (v1.6 & 1.7)"
-  },
-  "moreAboutSection": {
-    "title": "More About Me"
-  },
-  "highlights": {
-    "bilingual": {
-      "label": "Bilingual",
-      "value": "FR / EN"
+  "home": {
+    "eyebrow": "Fullstack engineer · AI systems · Remote, EU",
+    "headline": "I wire AI agents into systems that already make money.",
+    "headlineLines": "I wire AI agents|into systems that|already make money.",
+    "lead": "Eight years building Laravel and PrestaShop backends for European e-commerce. Now I add Claude-SDK agents to them — with an eval harness, a cost budget, and no rewrite.",
+    "stats": {
+      "years": "years shipping production",
+      "saving": "cut from an Anthropic bill, in one afternoon",
+      "files": "files to put Claude in a PrestaShop back office"
     },
-    "projectManagement": {
-      "label": "Project Management",
-      "value": "A to Z project management, open to challenges, critical feedback and maintenance"
+    "ctaPrimary": "Start a project",
+    "ctaSecondary": "Read the writing",
+    "sheet": {
+      "shipping": "Shipping since",
+      "shippingValue": "2018 · 8 years fullstack",
+      "core": "Core",
+      "coreValue": "PHP · Laravel · PrestaShop · MySQL",
+      "ai": "AI",
+      "aiValue": "Claude SDK · agents · prompt caching · evals",
+      "also": "Also",
+      "alsoValue": "Flutter · Vue · Next.js · Firebase",
+      "languages": "Languages",
+      "languagesValue": "French (native) · English (professional)",
+      "available": "Available",
+      "availableValue": "Contract and permanent · Remote, EU"
+    },
+    "pipelineLabel": "How it goes in",
+    "pipelineLead": "Same shape every time. Your app keeps its code path, the agent hangs off the edge, and every call has a way to fail back.",
+    "pipeline": {
+      "app": "Your app",
+      "appNote": "Laravel, PrestaShop — whatever is already taking orders. No core overrides, no rewrite.",
+      "hook": "hook / event",
+      "layer": "Agent layer",
+      "cache": "Prompt cache",
+      "cacheNote": "Hit means no model call. This is where the 80% saving comes from.",
+      "model": "Claude SDK",
+      "modelNote": "Typed call, cost budget, timeout, retry.",
+      "eval": "Eval gate",
+      "evalNote": "Scored against fixtures. A regression does not ship.",
+      "result": "result",
+      "back": "Back to your app",
+      "backNote": "Behind a flag. Any failure falls back to the original path and nobody notices."
+    },
+    "capabilitiesLabel": "What I build",
+    "workLabel": "Selected work",
+    "workAction": "All work",
+    "writingLabel": "Writing",
+    "writingAction": "All posts",
+    "proofLabel": "Client feedback",
+    "contactLabel": "Contact",
+    "contactHeadline": "Have an app and an \"add AI\" mandate?",
+    "contactBody": "Tell me what the app does and where the AI is supposed to help. I'll tell you which insertion point pays off first — and which one to skip.",
+    "contactAction": "Start a project"
+  },
+  "capabilities": {
+    "agents": {
+      "title": "AI agents in apps you already run",
+      "body": "The insertion points that actually pay off — support triage, catalogue copy, internal search — added to a live Laravel or PrestaShop app without touching core.",
+      "points": "Claude SDK integration|Prompt caching and cost budgets|Eval harness before launch"
+    },
+    "commerce": {
+      "title": "Production e-commerce",
+      "body": "PrestaShop and Laravel builds, custom modules, catalogue and payment work. Eight years of stores that had to stay up through sale season.",
+      "points": "PrestaShop 1.6 / 1.7 modules|Laravel APIs and integrations|Migration and performance work"
+    },
+    "apps": {
+      "title": "Mobile and web products",
+      "body": "Flutter and Vue front ends on Firebase or a Laravel API. First screen to store release, managed end to end.",
+      "points": "Flutter for iOS and Android|Vue and Next.js front ends|Firebase and REST back ends"
     }
   },
-  "portfolioSection": {
-    "title": "My Work",
-    "viewProject": "View Project"
+  "work": {
+    "eyebrow": "Work",
+    "title": "Systems I have shipped and can talk about.",
+    "lead": "Two of these are written up in full. The rest of the last eight years is client work under NDA — the shape of it is below.",
+    "filterLabel": "Filter",
+    "filterAll": "All",
+    "caseStudy": "Case study",
+    "empty": "Nothing in this category yet.",
+    "categories": {
+      "ai": "AI agents",
+      "ecommerce": "E-commerce",
+      "mobile": "Mobile",
+      "modules": "Modules"
+    },
+    "items": {
+      "career-os": {
+        "title": "Career-OS",
+        "summary": "An agent that runs my own job search. Five scrapers feed a Claude scorer, an evaluable drafter writes the applications, a nightly digest reports what moved. Prompt caching cut the Anthropic bill by roughly 80% in an afternoon.",
+        "metricLabel": "Anthropic spend after caching",
+        "kind": "Personal system · in production"
+      },
+      "prestashop-claude": {
+        "title": "Claude in the PrestaShop back office",
+        "summary": "A five-file module pattern that puts a Claude agent behind back-office buttons — product copy, category cleanup, SEO meta — with no core overrides and a documented failure mode for every call.",
+        "metricLabel": "Module footprint, zero overrides",
+        "kind": "Pattern · shipped to production stores"
+      }
+    },
+    "engagementsLabel": "Where eight years went",
+    "engagements": {
+      "commerce": "E-commerce builds",
+      "commerceValue": "PrestaShop 1.6 and 1.7 stores, custom themes, bespoke modules, catalogue and checkout work",
+      "backend": "Backend and APIs",
+      "backendValue": "Laravel and CodeIgniter services, MySQL schema work, third-party integrations",
+      "mobile": "Mobile",
+      "mobileValue": "Flutter and Dart apps on Firebase, released to both stores",
+      "frontend": "Front end",
+      "frontendValue": "Vue, jQuery and Next.js interfaces on top of those APIs",
+      "delivery": "Delivery",
+      "deliveryValue": "A-to-Z project management, direct client contact, maintenance after handover"
+    }
   },
-  "blogSection": {
-    "title": "Latest Articles",
-    "readMore": "Read More"
+  "about": {
+    "eyebrow": "About",
+    "title": "I have been shipping web software for eight years. The AI part is recent, and deliberate.",
+    "lead": "I am a fullstack developer working in French and English, from the EU. Most of my career has been e-commerce backends — the unglamorous kind that has to survive Black Friday. Since Claude got good enough to trust with real work, I have been putting agents into those same systems.",
+    "storyLabel": "How I work",
+    "story": "Most \"add AI\" projects fail the same way: someone ships a prompt, nothing visibly breaks, and it quietly degrades for weeks. So I treat prompts like code that can regress. Fixture-based evals with tolerance bands, run on every prompt change and every model update. A cost budget before the first call. And insertion points chosen because they pay off, not because they demo well.|The e-commerce years taught me the other half. When a store is taking orders, you do not get to rewrite it. You add capability at the edges, behind a flag, with a way back. That constraint is why my AI work looks the way it does.",
+    "stackLabel": "Stack",
+    "stack": {
+      "backend": "Backend",
+      "backendValue": "PHP · Laravel · CodeIgniter · MySQL · REST",
+      "ai": "AI",
+      "aiValue": "Claude SDK · Python · prompt caching · eval harnesses · MCP",
+      "commerce": "Commerce",
+      "commerceValue": "PrestaShop 1.6 / 1.7 · modules · themes · Smarty",
+      "frontend": "Front end",
+      "frontendValue": "Vue · Next.js · React · Tailwind · JavaScript",
+      "mobile": "Mobile",
+      "mobileValue": "Flutter · Dart · Firebase",
+      "ways": "Ways of working",
+      "waysValue": "A-to-Z ownership · direct client contact · maintenance after handover"
+    },
+    "principlesLabel": "What I believe about shipping AI",
+    "principles": "An LLM feature without an eval harness is an outage you have not noticed yet.|Prompt caching is the cheapest ten-times win available. Do it before you optimise anything else.|Pick the insertion point by ROI, not by demo value. Support triage beats a chatbot.|If it cannot be rolled back behind a flag, it is not ready for a store that is taking orders.",
+    "ctaHeadline": "Hiring, or have something to build?",
+    "ctaBody": "I am open to contract and permanent work, remote across the EU."
   },
-  "testimonialSection": {
-    "title": "Testimonials",
-    "goToTestimonial": "Go to testimonial"
+  "blog": {
+    "eyebrow": "Writing",
+    "title": "Notes from production.",
+    "lead": "Claude SDK patterns, cost control and evaluation — written from systems that have real users, including the failure modes.",
+    "filterLabel": "Filter",
+    "filterAll": "All",
+    "empty": "No posts match that filter.",
+    "readingTime": "{minutes} min read",
+    "backToIndex": "All writing",
+    "next": "Next",
+    "previous": "Previous",
+    "publishedOn": "Published",
+    "ctaHeadline": "Want this done in your codebase?",
+    "ctaBody": "I do this work for a living. Tell me what you are running."
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Tell me what you are building.",
+    "lead": "The more concrete you are about the app and the outcome, the more useful my first reply will be.",
+    "directLabel": "Direct",
+    "formLabel": "Send a message",
+    "emailLabel": "Email",
+    "locationLabel": "Based",
+    "responseLabel": "Reply time",
+    "responseValue": "Usually within one working day",
+    "languagesLabel": "Languages",
+    "languagesValue": "French · English",
+    "callLabel": "Prefer to talk?",
+    "callBody": "Book a slot and we will go through it live.",
+    "callAction": "Schedule a call"
+  },
+  "form": {
+    "name": "Name",
+    "email": "Email",
+    "subject": "What is this about",
+    "subjectPlaceholder": "AI agent for a Laravel app",
+    "message": "Message",
+    "messagePlaceholder": "What the app does today, and where AI is supposed to help.",
+    "send": "Send message",
+    "sending": "Sending",
+    "success": "Message sent. I will reply from {email}.",
+    "error": "That did not send. Email {email} directly and it will reach me.",
+    "required": "Required"
   },
   "testimonials": {
     "clientA": {
@@ -68,25 +209,10 @@
       "author": "Client B"
     }
   },
-  "contactSection": {
-    "title": "Get In Touch",
-    "name": "Name",
-    "email": "Email",
-    "message": "Message",
-    "send": "Send Message",
-    "cta": "🚀 Contact me to discuss your project!",
-    "subject": "Subject",
-    "sending": "Sending...",
-    "success": "Message sent successfully! Thank you.",
-    "error": "Error: Failed to send message.",
-    "unexpectedError": "An unexpected error occurred."
-  },
-  "footer": {
-    "copyright": "All rights reserved",
-    "social": "Social Links",
-    "reachOut": "Feel free to explore my portfolio to see examples of my work, or get in touch if you'd like to discuss a project or opportunity. You can reach me via email at"
-  },
-  "quotes": {
-    "codeHumor": "\"Code is like humor. When you have to explain it, it's bad.\" - Cory House"
+  "notFound": {
+    "title": "That page does not exist.",
+    "body": "The link is wrong or the page moved. The work and the writing are both still here.",
+    "home": "Go home",
+    "writing": "Read the writing"
   }
-} 
+}

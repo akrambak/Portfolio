@@ -1,70 +1,71 @@
+import type { Metadata } from "next";
+import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import ContactForm from "@/components/ContactForm";
-import CalendlyButton from "@/components/CalendlyButton";
-import { FaEnvelope, FaMapMarkerAlt, FaLinkedin, FaGithub } from 'react-icons/fa'; // Import necessary icons
-import Link from "next/link";
+import { CalendarIcon } from "@/components/icons";
+import { Container, DataSheet, PageHeader, SectionHeader } from "@/components/ui";
+import { links, site } from "@/config/site";
 
-// Replace with actual links and details
-const CALENDLY_URL = "https://calendly.com/your-link";
-const CONTACT_EMAIL = "akram.bakhouche@example.com";
-const LOCATION = "Somewhere, Earth";
-const LINKEDIN_URL = "#"; // Replace with LinkedIn profile URL
-const GITHUB_URL = "#"; // Replace with GitHub profile URL
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("contact");
+  return { title: t("eyebrow"), description: t("lead") };
+}
 
 export default function ContactPage() {
+  const t = useTranslations("contact");
+
   return (
-    <div>
-      <h1 className="mb-8 text-4xl font-bold tracking-tight">Contact Me</h1>
-      <p className="mb-12 text-lg text-gray-600 dark:text-gray-400">
-        Have a project in mind or just want to say hi? Fill out the form below or schedule a call.
-      </p>
+    <Container>
+      <PageHeader eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} />
 
-      <div className="grid grid-cols-1 gap-x-12 gap-y-16 md:grid-cols-2">
-        {/* Column 1: Contact Form */}
-        <div>
-          <h2 className="mb-6 text-2xl font-semibold">Send a Message</h2>
-          <ContactForm />
-        </div>
+      <div className="grid gap-14 pb-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-20">
+        <section>
+          <SectionHeader label={t("formLabel")} />
+          <div className="mt-8">
+            <ContactForm />
+          </div>
+        </section>
 
-        {/* Column 2: Quick Info & Calendly */}
-        <div className="space-y-10">
-          <div>
-            <h2 className="mb-4 text-2xl font-semibold">Quick Info</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <FaEnvelope className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                <a href={`mailto:${CONTACT_EMAIL}`} className="text-gray-700 hover:text-accent-600 dark:text-gray-300 dark:hover:text-accent-400">
-                  {CONTACT_EMAIL}
-                </a>
-              </div>
-              <div className="flex items-start gap-3">
-                <FaMapMarkerAlt className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                <span className="text-gray-700 dark:text-gray-300">{LOCATION}</span>
-              </div>
-              {/* Social Links */}
-               <div className="flex items-start gap-3">
-                 <FaLinkedin className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                 <Link href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-accent-600 dark:text-gray-300 dark:hover:text-accent-400">
-                   LinkedIn Profile
-                 </Link>
-               </div>
-               <div className="flex items-start gap-3">
-                 <FaGithub className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                 <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-accent-600 dark:text-gray-300 dark:hover:text-accent-400">
-                   GitHub Profile
-                 </Link>
-               </div>
+        <aside className="lg:pt-1">
+          <SectionHeader label={t("directLabel")} />
+          <div className="mt-8">
+            <DataSheet
+              rows={[
+                {
+                  label: t("emailLabel"),
+                  value: (
+                    <a
+                      href={`mailto:${site.email}`}
+                      className="text-ink underline decoration-signal decoration-1 underline-offset-4 transition-colors duration-200 hover:text-signal"
+                    >
+                      {site.email}
+                    </a>
+                  ),
+                },
+                { label: t("locationLabel"), value: site.locationLabel },
+                { label: t("responseLabel"), value: t("responseValue") },
+                { label: t("languagesLabel"), value: t("languagesValue") },
+              ]}
+            />
+          </div>
+
+          {links.calendly && (
+            <div className="mt-10 rounded-[3px] border border-rule p-6">
+              <h2 className="text-lg font-semibold tracking-tight">{t("callLabel")}</h2>
+              <p className="mt-2 text-sm leading-relaxed text-graphite">{t("callBody")}</p>
+              <a
+                href={links.calendly}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-[3px] border border-rule-strong px-4 font-mono text-eyebrow font-medium uppercase text-ink transition-colors duration-200 hover:border-signal hover:text-signal"
+              >
+                <CalendarIcon className="h-4 w-4" />
+                {t("callAction")}
+              </a>
             </div>
-          </div>
-
-          <div>
-            <h2 className="mb-4 text-2xl font-semibold">Schedule a Meeting</h2>
-            <p className="mb-4 text-gray-600 dark:text-gray-400">
-              Prefer to talk directly? Book a time that works for you:
-            </p>
-            <CalendlyButton url={CALENDLY_URL} />
-          </div>
-        </div>
+          )}
+        </aside>
       </div>
-    </div>
+    </Container>
   );
-} 
+}

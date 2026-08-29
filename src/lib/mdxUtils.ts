@@ -1,97 +1,84 @@
 import "server-only";
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
-import { serialize } from 'next-mdx-remote/serialize';
-import type { MDXRemoteSerializeResult } from 'next-mdx-remote'; // Import the result type
-// Import remark/rehype plugins if needed (e.g., for syntax highlighting with Prism)
-// import remarkPrism from 'remark-prism'; // Example
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
 
-// Define the structure of your frontmatter
 export interface PostFrontmatter {
   title: string;
-  date: string; // Keep as string for serialization
+  date: string;
   excerpt: string;
   category?: string;
   tags?: string[];
-  [key: string]: string | string[] | undefined; // More specific type instead of any
+  readingMinutes: number;
 }
 
-export interface Post<TFrontmatter> {
+export interface Post {
   slug: string;
-  frontmatter: TFrontmatter;
+  frontmatter: PostFrontmatter;
 }
 
-export interface PostWithSource<TFrontmatter> extends Post<TFrontmatter> {
-  source: MDXRemoteSerializeResult; // Use the imported type
+export interface PostWithSource extends Post {
+  content: string;
 }
 
-const postsDirectory = path.join(process.cwd(), 'content/blog');
+const postsDirectory = path.join(process.cwd(), "content/blog");
 
-// Get all filenames/slugs from the blog directory
-export function getAllPostSlugs() {
+const WORDS_PER_MINUTE = 220;
+
+function readPost(slug: string) {
+  const fileContents = fs.readFileSync(path.join(postsDirectory, `${slug}.mdx`), "utf8");
+  const { data, content } = matter(fileContents);
+  const words = content.trim().split(/\s+/).length;
+
+  const frontmatter: PostFrontmatter = {
+    title: data.title,
+    date: new Date(data.date).toISOString(),
+    excerpt: data.excerpt,
+    category: data.category,
+    tags: data.tags,
+    readingMinutes: Math.max(1, Math.round(words / WORDS_PER_MINUTE)),
+  };
+
+  return { slug, frontmatter, content };
+}
+
+export function getAllPostSlugs(): string[] {
   try {
-    const fileNames = fs.readdirSync(postsDirectory);
-    return fileNames
-      .filter((fileName) => fileName.endsWith('.mdx'))
-      .map((fileName) => fileName.replace(/\.mdx$/, ''));
-  } catch (error) {
-    console.error("Error reading blog directory:", error);
-    return []; // Return empty array if directory doesn't exist or error occurs
+    return fs
+      .readdirSync(postsDirectory)
+      .filter((name) => name.endsWith(".mdx"))
+      .map((name) => name.replace(/\.mdx$/, ""));
+  } catch {
+    return [];
   }
 }
 
-// Get sorted posts data (slug + frontmatter)
-export function getSortedPostsData(): Post<PostFrontmatter>[] {
-  const slugs = getAllPostSlugs();
-  const allPostsData = slugs.map((slug) => {
-    const fullPath = path.join(postsDirectory, `${slug}.mdx`);
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data } = matter(fileContents);
-
-    // Ensure date is treated correctly
-    const frontmatter = { ...data, date: data.date.toISOString() } as PostFrontmatter;
-
-    return {
-      slug,
-      frontmatter,
-    };
-  });
-
-  // Sort posts by date (newest first)
-  return allPostsData.sort((a, b) => {
-    const dateA = new Date(a.frontmatter.date);
-    const dateB = new Date(b.frontmatter.date);
-    return dateB.getTime() - dateA.getTime();
-  });
+export function getSortedPostsData(): Post[] {
+  return getAllPostSlugs()
+    .map((slug) => {
+      const { frontmatter } = readPost(slug);
+      return { slug, frontmatter };
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime(),
+    );
 }
 
-// Get individual post data and serialize MDX
-export async function getPostData(slug: string): Promise<PostWithSource<PostFrontmatter> | null> {
-  const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+export function getPostData(slug: string): PostWithSource | null {
   try {
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data, content } = matter(fileContents);
-
-    const mdxSource = await serialize(content, {
-      // Optionally pass remark/rehype plugins
-      mdxOptions: {
-        // remarkPlugins: [remarkPrism], // Enable Prism remark plugin if installed
-        rehypePlugins: [],
-      },
-      parseFrontmatter: false, // We already parsed it with gray-matter
-    });
-
-    // Convert date to string for serialization
-    const frontmatter = { ...data, date: data.date.toISOString() } as PostFrontmatter;
-
-    return {
-      slug,
-      frontmatter,
-      source: mdxSource,
-    };
-  } catch (error) {
-    console.error(`Error reading post ${slug}:`, error);
-    return null; // Return null if file not found or error occurs
+    return readPost(slug);
+  } catch {
+    return null;
   }
-} 
+}
+
+export function getAdjacentPosts(slug: string): { previous: Post | null; next: Post | null } {
+  const posts = getSortedPostsData();
+  const index = posts.findIndex((post) => post.slug === slug);
+  if (index === -1) return { previous: null, next: null };
+  return {
+    previous: posts[index + 1] ?? null,
+    next: posts[index - 1] ?? null,
+  };
+}

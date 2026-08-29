@@ -1,62 +1,203 @@
 {
-  "navigation": {
-    "home": "Accueil",
-    "about": "À Propos",
-    "portfolio": "Portfolio",
-    "blog": "Blog",
-    "contact": "Contact",
-    "modules": "Modules",
-    "themes": "Thèmes"
+  "meta": {
+    "role": "Développeur fullstack · systèmes IA",
+    "description": "J'intègre des agents Claude SDK dans des systèmes Laravel et PrestaShop déjà en production — avec harnais d'évaluation, budget de coût, et sans réécriture."
   },
-  "hero": {
-    "greeting": "Bonjour, je suis",
-    "role": "Développeur Logiciel",
-    "tagline": "Développeur Fullstack Flutter mobile PHP Laravel PrestaShop"
+  "nav": {
+    "primary": "Principal",
+    "secondary": "Site",
+    "menu": "Menu",
+    "work": "Projets",
+    "writing": "Articles",
+    "about": "À propos",
+    "contact": "Contact"
   },
-  "profile": {
-    "name": "Akram Bakhouche",
-    "imagePlaceholder": "Image Placeholder"
+  "controls": {
+    "toggleTheme": "Changer de thème",
+    "skipToContent": "Aller au contenu"
   },
-  "aboutSection": {
-    "title": "À Propos de Moi",
-    "description": "Je suis un développeur passionné dédié à créer des solutions élégantes à des problèmes complexes.",
-    "summary": "Développeur web et mobile passionné avec 8 ans d'expérience dans la création d'applications full-stack. Expert en PrestaShop/PHP, avec de solides compétences en Vue, Flutter, Dart et Firebase."
-  },
-  "skillsSection": {
-    "title": "Compétences & Expertise"
-  },
-  "skills": {
-    "fullstack": "Développement Fullstack (projets de bout en bout)",
-    "backend": "Backend (PHP/Laravel/CodeIgniter) & développement d'API",
-    "frontend": "Frontend (HTML5, CSS3/SASS, JavaScript/jQuery)",
-    "ecommerce": "E-commerce (création de sites PrestaShop)",
-    "mobile": "Applications Mobiles & Web (Flutter, Vue, Firebase)",
-    "prestashop": "Développement de Modules PrestaShop (v1.6 & 1.7)"
-  },
-  "moreAboutSection": {
-    "title": "Plus Sur Moi"
-  },
-  "highlights": {
-    "bilingual": {
-      "label": "Bilingue",
-      "value": "FR / EN"
+  "home": {
+    "eyebrow": "Développeur fullstack · systèmes IA · à distance, UE",
+    "headline": "J'intègre des agents IA dans des systèmes qui génèrent déjà du revenu.",
+    "headlineLines": "J'intègre des agents IA|dans des systèmes|qui rapportent déjà.",
+    "lead": "Huit ans à construire des backends Laravel et PrestaShop pour le e-commerce européen. J'y ajoute maintenant des agents Claude SDK — avec un harnais d'évaluation, un budget de coût, et sans réécriture.",
+    "stats": {
+      "years": "ans de mise en production",
+      "saving": "retirés d'une facture Anthropic, en une après-midi",
+      "files": "fichiers pour mettre Claude dans un back-office PrestaShop"
     },
-    "projectManagement": {
-      "label": "Gestion de Projet",
-      "value": "Gestion de projet de A à Z, ouvert aux défis, aux critiques constructives et à la maintenance"
+    "ctaPrimary": "Démarrer un projet",
+    "ctaSecondary": "Lire les articles",
+    "sheet": {
+      "shipping": "En production depuis",
+      "shippingValue": "2018 · 8 ans fullstack",
+      "core": "Cœur",
+      "coreValue": "PHP · Laravel · PrestaShop · MySQL",
+      "ai": "IA",
+      "aiValue": "Claude SDK · agents · prompt caching · évaluations",
+      "also": "Aussi",
+      "alsoValue": "Flutter · Vue · Next.js · Firebase",
+      "languages": "Langues",
+      "languagesValue": "Français (natif) · anglais (professionnel)",
+      "available": "Disponible",
+      "availableValue": "Freelance et CDI · à distance, UE"
+    },
+    "pipelineLabel": "Comment ça s'intègre",
+    "pipelineLead": "Toujours la même forme. Votre application garde son chemin d'exécution, l'agent se greffe sur le bord, et chaque appel a une porte de sortie.",
+    "pipeline": {
+      "app": "Votre application",
+      "appNote": "Laravel, PrestaShop — ce qui prend déjà des commandes. Aucune surcharge du cœur, aucune réécriture.",
+      "hook": "hook / événement",
+      "layer": "Couche agent",
+      "cache": "Cache de prompt",
+      "cacheNote": "Un hit, c'est aucun appel au modèle. C'est de là que viennent les 80 % d'économie.",
+      "model": "Claude SDK",
+      "modelNote": "Appel typé, budget de coût, timeout, retry.",
+      "eval": "Porte d'évaluation",
+      "evalNote": "Noté sur fixtures. Une régression ne passe pas en production.",
+      "result": "résultat",
+      "back": "Retour à votre application",
+      "backNote": "Derrière un flag. Toute défaillance retombe sur le chemin d'origine, sans que personne le voie."
+    },
+    "capabilitiesLabel": "Ce que je construis",
+    "workLabel": "Projets sélectionnés",
+    "workAction": "Tous les projets",
+    "writingLabel": "Articles",
+    "writingAction": "Tous les articles",
+    "proofLabel": "Retours clients",
+    "contactLabel": "Contact",
+    "contactHeadline": "Une application et une consigne « ajouter de l'IA » ?",
+    "contactBody": "Dites-moi ce que fait l'application et où l'IA doit aider. Je vous dirai quel point d'intégration rapporte en premier — et lequel éviter.",
+    "contactAction": "Démarrer un projet"
+  },
+  "capabilities": {
+    "agents": {
+      "title": "Des agents IA dans vos applications existantes",
+      "body": "Les points d'intégration qui rapportent vraiment — tri du support, fiches produit, recherche interne — ajoutés à une application Laravel ou PrestaShop en production, sans toucher au cœur.",
+      "points": "Intégration Claude SDK|Prompt caching et budget de coût|Harnais d'évaluation avant mise en ligne"
+    },
+    "commerce": {
+      "title": "E-commerce en production",
+      "body": "Développements PrestaShop et Laravel, modules sur mesure, catalogue et paiement. Huit ans de boutiques qui devaient tenir pendant les soldes.",
+      "points": "Modules PrestaShop 1.6 / 1.7|API et intégrations Laravel|Migration et performance"
+    },
+    "apps": {
+      "title": "Produits mobiles et web",
+      "body": "Interfaces Flutter et Vue sur Firebase ou une API Laravel. Du premier écran à la publication sur les stores, de bout en bout.",
+      "points": "Flutter pour iOS et Android|Interfaces Vue et Next.js|Back-ends Firebase et REST"
     }
   },
-  "portfolioSection": {
-    "title": "Mes Projets",
-    "viewProject": "Voir le Projet"
+  "work": {
+    "eyebrow": "Projets",
+    "title": "Des systèmes livrés, dont je peux parler.",
+    "lead": "Deux sont documentés en détail. Le reste de ces huit ans relève de projets clients sous NDA — voici la forme qu'ils prennent.",
+    "filterLabel": "Filtre",
+    "filterAll": "Tous",
+    "caseStudy": "Étude de cas",
+    "empty": "Rien dans cette catégorie pour l'instant.",
+    "categories": {
+      "ai": "Agents IA",
+      "ecommerce": "E-commerce",
+      "mobile": "Mobile",
+      "modules": "Modules"
+    },
+    "items": {
+      "career-os": {
+        "title": "Career-OS",
+        "summary": "Un agent qui pilote ma propre recherche d'emploi. Cinq scrapers alimentent un scoreur Claude, un rédacteur évaluable écrit les candidatures, un digest quotidien rapporte ce qui a bougé. Le prompt caching a réduit la facture Anthropic d'environ 80 % en une après-midi.",
+        "metricLabel": "Coût Anthropic après caching",
+        "kind": "Système personnel · en production"
+      },
+      "prestashop-claude": {
+        "title": "Claude dans le back-office PrestaShop",
+        "summary": "Un patron de module en cinq fichiers qui place un agent Claude derrière les boutons du back-office — fiches produit, nettoyage de catégories, méta SEO — sans surcharge du cœur et avec un mode de défaillance documenté pour chaque appel.",
+        "metricLabel": "Empreinte du module, zéro surcharge",
+        "kind": "Patron · livré en production"
+      }
+    },
+    "engagementsLabel": "Ce qu'ont été ces huit ans",
+    "engagements": {
+      "commerce": "Développement e-commerce",
+      "commerceValue": "Boutiques PrestaShop 1.6 et 1.7, thèmes sur mesure, modules spécifiques, catalogue et tunnel de commande",
+      "backend": "Backend et API",
+      "backendValue": "Services Laravel et CodeIgniter, schémas MySQL, intégrations tierces",
+      "mobile": "Mobile",
+      "mobileValue": "Applications Flutter et Dart sur Firebase, publiées sur les deux stores",
+      "frontend": "Front end",
+      "frontendValue": "Interfaces Vue, jQuery et Next.js au-dessus de ces API",
+      "delivery": "Gestion",
+      "deliveryValue": "Gestion de projet de A à Z, contact client direct, maintenance après livraison"
+    }
   },
-  "blogSection": {
-    "title": "Derniers Articles",
-    "readMore": "Lire Plus"
+  "about": {
+    "eyebrow": "À propos",
+    "title": "Huit ans à livrer du logiciel web. La partie IA est récente, et délibérée.",
+    "lead": "Je suis développeur fullstack, en français et en anglais, depuis l'UE. L'essentiel de ma carrière : des backends e-commerce — le genre peu glamour qui doit survivre au Black Friday. Depuis que Claude est assez fiable pour du vrai travail, j'y installe des agents.",
+    "storyLabel": "Ma façon de travailler",
+    "story": "La plupart des projets « ajoutons de l'IA » échouent de la même manière : quelqu'un livre un prompt, rien ne casse visiblement, et la qualité se dégrade en silence pendant des semaines. Je traite donc les prompts comme du code qui peut régresser. Évaluations sur fixtures avec bandes de tolérance, exécutées à chaque changement de prompt et à chaque mise à jour de modèle. Un budget de coût avant le premier appel. Et des points d'intégration choisis parce qu'ils rapportent, pas parce qu'ils font une belle démo.|Les années e-commerce m'ont appris l'autre moitié. Quand une boutique prend des commandes, on ne la réécrit pas. On ajoute de la capacité sur les bords, derrière un flag, avec un chemin de retour. C'est cette contrainte qui donne à mon travail IA la forme qu'il a.",
+    "stackLabel": "Stack",
+    "stack": {
+      "backend": "Backend",
+      "backendValue": "PHP · Laravel · CodeIgniter · MySQL · REST",
+      "ai": "IA",
+      "aiValue": "Claude SDK · Python · prompt caching · harnais d'évaluation · MCP",
+      "commerce": "Commerce",
+      "commerceValue": "PrestaShop 1.6 / 1.7 · modules · thèmes · Smarty",
+      "frontend": "Front end",
+      "frontendValue": "Vue · Next.js · React · Tailwind · JavaScript",
+      "mobile": "Mobile",
+      "mobileValue": "Flutter · Dart · Firebase",
+      "ways": "Méthode",
+      "waysValue": "Prise en charge de A à Z · contact client direct · maintenance après livraison"
+    },
+    "principlesLabel": "Ce que je crois sur la mise en production de l'IA",
+    "principles": "Une fonctionnalité LLM sans harnais d'évaluation est une panne que vous n'avez pas encore remarquée.|Le prompt caching est le gain ×10 le moins cher qui existe. À faire avant toute autre optimisation.|Choisissez le point d'intégration au ROI, pas à la valeur de démo. Le tri du support bat le chatbot.|Si ce n'est pas réversible derrière un flag, ce n'est pas prêt pour une boutique qui prend des commandes.",
+    "ctaHeadline": "Vous recrutez, ou vous avez quelque chose à construire ?",
+    "ctaBody": "Je suis ouvert au freelance comme au CDI, à distance partout dans l'UE."
   },
-  "testimonialSection": {
-    "title": "Témoignages",
-    "goToTestimonial": "Aller au témoignage"
+  "blog": {
+    "eyebrow": "Articles",
+    "title": "Notes de production.",
+    "lead": "Patrons Claude SDK, maîtrise des coûts et évaluation — écrits depuis des systèmes qui ont de vrais utilisateurs, modes de défaillance compris.",
+    "filterLabel": "Filtre",
+    "filterAll": "Tous",
+    "empty": "Aucun article ne correspond à ce filtre.",
+    "readingTime": "{minutes} min de lecture",
+    "backToIndex": "Tous les articles",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "publishedOn": "Publié le",
+    "ctaHeadline": "Vous voulez la même chose dans votre code ?",
+    "ctaBody": "C'est mon métier. Dites-moi ce que vous faites tourner."
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "Dites-moi ce que vous construisez.",
+    "lead": "Plus vous êtes concret sur l'application et le résultat attendu, plus ma première réponse sera utile.",
+    "directLabel": "Direct",
+    "formLabel": "Envoyer un message",
+    "emailLabel": "Email",
+    "locationLabel": "Basé",
+    "responseLabel": "Délai de réponse",
+    "responseValue": "En général sous un jour ouvré",
+    "languagesLabel": "Langues",
+    "languagesValue": "Français · anglais",
+    "callLabel": "Vous préférez en parler ?",
+    "callBody": "Réservez un créneau et on regarde ça en direct.",
+    "callAction": "Réserver un appel"
+  },
+  "form": {
+    "name": "Nom",
+    "email": "Email",
+    "subject": "De quoi s'agit-il",
+    "subjectPlaceholder": "Agent IA pour une application Laravel",
+    "message": "Message",
+    "messagePlaceholder": "Ce que fait l'application aujourd'hui, et où l'IA doit aider.",
+    "send": "Envoyer le message",
+    "sending": "Envoi",
+    "success": "Message envoyé. Je réponds depuis {email}.",
+    "error": "L'envoi a échoué. Écrivez directement à {email}, ça me parviendra.",
+    "required": "Obligatoire"
   },
   "testimonials": {
     "clientA": {
@@ -68,25 +209,10 @@
       "author": "Client B"
     }
   },
-  "contactSection": {
-    "title": "Me Contacter",
-    "name": "Nom",
-    "email": "Email",
-    "message": "Message",
-    "send": "Envoyer le Message",
-    "cta": "🚀 Contactez-moi pour discuter de votre projet !",
-    "subject": "Sujet",
-    "sending": "Envoi en cours...",
-    "success": "Message envoyé avec succès ! Merci.",
-    "error": "Erreur : Échec de l'envoi du message.",
-    "unexpectedError": "Une erreur inattendue s'est produite."
-  },
-  "footer": {
-    "copyright": "Tous droits réservés",
-    "social": "Liens Sociaux",
-    "reachOut": "N'hésitez pas à explorer mon portfolio pour voir des exemples de mon travail, ou à me contacter si vous souhaitez discuter d'un projet ou d'une opportunité. Vous pouvez me joindre par email à"
-  },
-  "quotes": {
-    "codeHumor": "\"Le code est comme l'humour. Quand on doit l'expliquer, c'est mauvais.\" - Cory House"
+  "notFound": {
+    "title": "Cette page n'existe pas.",
+    "body": "Le lien est incorrect ou la page a été déplacée. Les projets et les articles sont toujours là.",
+    "home": "Retour à l'accueil",
+    "writing": "Lire les articles"
   }
-} 
+}
