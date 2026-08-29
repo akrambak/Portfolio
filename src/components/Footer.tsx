@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { FaLinkedin, FaGithub } from "react-icons/fa"; // Import icons
-import { useTranslation } from "@/lib/i18n";
-import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 // Replace with actual profile URLs
 const LINKEDIN_URL = "#";
@@ -15,17 +14,7 @@ const SocialLink = ({ href, label, icon: Icon }: { href: string; label: string; 
 );
 
 export default function Footer() {
-  const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
+  const t = useTranslations();
 
   return (
     <footer className="bg-black/10 dark:bg-black/30 backdrop-blur-sm mt-12">

@@ -4,35 +4,24 @@ import "./globals.css";
 import Layout from "@/components/Layout";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Script from "next/script";
-
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 
 export const metadata: Metadata = {
   title: "Akram Bakhouche - Portfolio",
   description: "Fullstack Web & Mobile Developer",
-  alternates: {
-    languages: {
-      'en': '/',
-      'fr': '/fr',
-    },
-  },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="afterInteractive">
@@ -45,20 +34,6 @@ export default function RootLayout({
           `}
         </Script>
         {/* End Google Tag Manager */}
-        
-        {/* Script to set the language attribute on the html tag */}
-        <Script id="set-language" strategy="beforeInteractive">
-          {`
-            (function() {
-              try {
-                const savedLocale = localStorage.getItem('locale') || 'en';
-                document.documentElement.lang = savedLocale;
-              } catch (e) {
-                document.documentElement.lang = 'en';
-              }
-            })();
-          `}
-        </Script>
       </head>
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300`}
@@ -67,14 +42,16 @@ export default function RootLayout({
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MD68KMQC"
         height="0" width="0" style={{display:'none',visibility:'hidden'}}></iframe></noscript>
         {/* End Google Tag Manager (noscript) */}
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Layout>{children}</Layout>
-        </ThemeProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Layout>{children}</Layout>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

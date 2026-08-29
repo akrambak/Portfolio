@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 
 // Placeholder data - replace with actual content
 const profile = {
@@ -37,13 +37,7 @@ const fadeIn = {
 
 export default function AboutPage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const t = useTranslations();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,10 +45,6 @@ export default function AboutPage() {
     }, 5000); // Change every 5 seconds
     return () => clearInterval(interval);
   }, []);
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <div className="space-y-12 md:space-y-16 lg:space-y-20">

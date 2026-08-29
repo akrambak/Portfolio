@@ -1,20 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ThemeToggleButton } from "./ThemeToggleButton";
 import LanguageSwitcher from "./LanguageSwitcher";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslations } from "next-intl";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const t = useTranslations();
 
   const navLinks = [
     { href: "/about", label: t("navigation.about") },
@@ -28,10 +22,6 @@ export default function Navbar() {
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <nav className="sticky top-0 z-50 bg-white/30 dark:bg-gray-900/40 backdrop-blur-md shadow-md">

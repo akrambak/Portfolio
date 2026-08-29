@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from 'react';
+import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { useTranslation } from '@/lib/i18n';
+import { useTranslations } from 'next-intl';
 
 export default function ContactForm() {
-  const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
+  const t = useTranslations();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,11 +14,6 @@ export default function ContactForm() {
   });
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -60,10 +54,6 @@ export default function ContactForm() {
       setStatus('error');
     }
   };
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

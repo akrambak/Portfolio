@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 // import Image from "next/image"; // Removed unused import
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslations, useLocale } from "next-intl";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 10 },
@@ -14,13 +14,8 @@ const fadeIn = {
 // Renamed component to HomePage
 export default function HomePage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const { t, locale } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const t = useTranslations();
+  const locale = useLocale();
 
   // Get skills from translation based on current locale
   const getSkillsList = () => [
@@ -53,10 +48,6 @@ export default function HomePage() {
     }, 5000); // Change every 5 seconds
     return () => clearInterval(interval);
   }, [locale, getTestimonials]); // Added getTestimonials to dependency array
-
-  if (!mounted) {
-    return null;
-  }
 
   const skills = getSkillsList();
   const highlights = getHighlights();
