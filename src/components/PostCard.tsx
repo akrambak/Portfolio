@@ -1,59 +1,69 @@
-"use client"; // Keep as client component if using hooks like useDateFormatter
-
 import Link from "next/link";
-import { Post, PostFrontmatter } from "@/lib/mdxUtils"; // Import types
-
-// Basic date formatting, consider a library like date-fns for more robust formatting
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
+import type { Post, PostFrontmatter } from "@/lib/mdxUtils";
+import { PlateHover } from "@/components/PlateHover";
+import { ArrowRight } from "@/components/ui/CTALink";
 
 interface PostCardProps {
   post: Post<PostFrontmatter>;
+  locale: string;
+  readingTimeLabel: string;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+function formatDate(dateString: string, locale: string): string {
+  return new Date(dateString).toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+export function PostCard({ post, locale, readingTimeLabel }: PostCardProps) {
   const { slug, frontmatter } = post;
   const { title, date, excerpt, category, tags } = frontmatter;
 
   return (
-    <article className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800">
-      <div className="mb-2 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-        <time dateTime={date}>{formatDate(date)}</time>
-        {category && (
-          <span className="inline-block rounded bg-accent-100 px-2 py-0.5 text-xs font-medium text-accent-800 dark:bg-accent-900 dark:text-accent-200">
-            {category}
-          </span>
-        )}
-      </div>
-      <h2 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-        <Link href={`/blog/${slug}`} className="hover:underline">
-          {title}
-        </Link>
-      </h2>
-      <p className="mb-4 font-light text-gray-600 dark:text-gray-300">
-        {excerpt}
-      </p>
-      {tags && tags.length > 0 && (
-        <div className="mb-4 flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <span key={tag} className="inline-block rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-              #{tag}
+    <PlateHover className="h-full border border-hairline bg-surface transition-colors duration-300 hover:border-accent">
+      <article className="flex h-full flex-col p-6 sm:p-7">
+        <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-hairline pb-4 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-ink-faint">
+          <time dateTime={date}>{formatDate(date, locale)}</time>
+          <span aria-hidden="true" className="h-3 w-px bg-hairline-strong" />
+          <span>{readingTimeLabel}</span>
+          {category && (
+            <span className="ml-auto text-accent-2 normal-case tracking-normal">
+              {category}
             </span>
-          ))}
+          )}
         </div>
-      )}
-      <Link
-        href={`/blog/${slug}`}
-        className="inline-flex items-center font-medium text-accent-600 hover:text-accent-800 dark:text-accent-400 dark:hover:text-accent-300"
-      >
-        Read more
-        <svg className="ml-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
-      </Link>
-    </article>
+
+        <h3 className="font-display text-xl font-medium leading-snug tracking-[-0.02em] text-ink sm:text-2xl">
+          <Link
+            href={`/blog/${slug}`}
+            className="after:absolute after:inset-0 after:content-['']"
+          >
+            {title}
+          </Link>
+        </h3>
+
+        <p className="mt-3 flex-grow text-sm leading-relaxed text-ink-muted">{excerpt}</p>
+
+        <div className="mt-6 flex items-end justify-between gap-4">
+          {tags && tags.length > 0 && (
+            <ul className="flex flex-wrap gap-1.5">
+              {tags.slice(0, 3).map((tag) => (
+                <li
+                  key={tag}
+                  className="border border-hairline bg-raised px-2 py-1 font-mono text-[0.66rem] text-ink-muted"
+                >
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )}
+          <ArrowRight className="shrink-0 text-ink-faint transition-colors duration-200 group-hover:text-accent-2" />
+        </div>
+      </article>
+    </PlateHover>
   );
-} 
+}
+
+export default PostCard;

@@ -1,70 +1,114 @@
-import ContactForm from "@/components/ContactForm";
-import CalendlyButton from "@/components/CalendlyButton";
-import { FaEnvelope, FaMapMarkerAlt, FaLinkedin, FaGithub } from 'react-icons/fa'; // Import necessary icons
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { FaLinkedin, FaGithub } from "react-icons/fa";
 import Link from "next/link";
+import ContactForm from "@/components/ContactForm";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Reveal } from "@/components/motion/Reveal";
+import { ArrowRight, CTALink } from "@/components/ui/CTALink";
+import { activeSocials, configured, site } from "@/config/site";
 
-// Replace with actual links and details
-const CALENDLY_URL = "https://calendly.com/your-link";
-const CONTACT_EMAIL = "akram.bakhouche@example.com";
-const LOCATION = "Somewhere, Earth";
-const LINKEDIN_URL = "#"; // Replace with LinkedIn profile URL
-const GITHUB_URL = "#"; // Replace with GitHub profile URL
+const ICONS = { github: FaGithub, linkedin: FaLinkedin } as const;
 
-export default function ContactPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations();
+  return {
+    title: t("contactPage.title"),
+    description: t("contactPage.lede"),
+  };
+}
+
+export default async function ContactPage() {
+  const t = await getTranslations();
+  const socials = activeSocials();
+  const hasDirect = configured(site.email) || configured(site.location) || socials.length > 0;
+  // Until site.ts is filled in there is no sidebar, so the form takes the
+  // full column instead of sitting next to an empty half.
+  const hasSidebar = hasDirect || configured(site.links.calendly);
+
   return (
-    <div>
-      <h1 className="mb-8 text-4xl font-bold tracking-tight">Contact Me</h1>
-      <p className="mb-12 text-lg text-gray-600 dark:text-gray-400">
-        Have a project in mind or just want to say hi? Fill out the form below or schedule a call.
-      </p>
+    <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      <PageHeader
+        eyebrow={t("contactPage.eyebrow")}
+        title={t("contactPage.title")}
+        lede={t("contactPage.lede")}
+      />
 
-      <div className="grid grid-cols-1 gap-x-12 gap-y-16 md:grid-cols-2">
-        {/* Column 1: Contact Form */}
-        <div>
-          <h2 className="mb-6 text-2xl font-semibold">Send a Message</h2>
+      <div
+        className={
+          "grid grid-cols-1 gap-14 lg:gap-20 " +
+          (hasSidebar ? "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" : "max-w-2xl")
+        }
+      >
+        <Reveal as="section">
+          <h2 className="mb-7 font-mono text-sm uppercase tracking-[0.16em] text-ink-faint">
+            {t("contactPage.formTitle")}
+          </h2>
           <ContactForm />
-        </div>
+        </Reveal>
 
-        {/* Column 2: Quick Info & Calendly */}
-        <div className="space-y-10">
-          <div>
-            <h2 className="mb-4 text-2xl font-semibold">Quick Info</h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <FaEnvelope className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                <a href={`mailto:${CONTACT_EMAIL}`} className="text-gray-700 hover:text-accent-600 dark:text-gray-300 dark:hover:text-accent-400">
-                  {CONTACT_EMAIL}
-                </a>
-              </div>
-              <div className="flex items-start gap-3">
-                <FaMapMarkerAlt className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                <span className="text-gray-700 dark:text-gray-300">{LOCATION}</span>
-              </div>
-              {/* Social Links */}
-               <div className="flex items-start gap-3">
-                 <FaLinkedin className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                 <Link href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-accent-600 dark:text-gray-300 dark:hover:text-accent-400">
-                   LinkedIn Profile
-                 </Link>
-               </div>
-               <div className="flex items-start gap-3">
-                 <FaGithub className="mt-1 h-5 w-5 flex-shrink-0 text-accent-600 dark:text-accent-400" />
-                 <Link href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-accent-600 dark:text-gray-300 dark:hover:text-accent-400">
-                   GitHub Profile
-                 </Link>
-               </div>
-            </div>
-          </div>
+        {hasSidebar && (
+        <div className="space-y-12">
+          {hasDirect && (
+            <Reveal as="section">
+              <h2 className="mb-5 font-mono text-sm uppercase tracking-[0.16em] text-ink-faint">
+                {t("contactPage.infoTitle")}
+              </h2>
+              <ul className="space-y-3">
+                {configured(site.email) && (
+                  <li>
+                    <a
+                      href={`mailto:${site.email}`}
+                      className="font-mono text-base text-accent transition-opacity duration-200 hover:opacity-75"
+                    >
+                      {site.email}
+                    </a>
+                  </li>
+                )}
+                {configured(site.location) && (
+                  <li className="text-sm text-ink-muted">{site.location}</li>
+                )}
+                {socials.length > 0 && (
+                  <li className="flex flex-wrap gap-2 pt-2">
+                    {socials.map(({ key, href, label }) => {
+                      const Icon = ICONS[key as keyof typeof ICONS];
+                      if (!Icon) return null;
+                      return (
+                        <Link
+                          key={key}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-11 items-center gap-2.5 rounded-[2px] border border-hairline px-4 font-mono text-xs text-ink-muted transition-colors duration-200 hover:border-hairline-strong hover:text-ink"
+                        >
+                          <Icon className="h-4 w-4" aria-hidden="true" />
+                          {label}
+                        </Link>
+                      );
+                    })}
+                  </li>
+                )}
+              </ul>
+            </Reveal>
+          )}
 
-          <div>
-            <h2 className="mb-4 text-2xl font-semibold">Schedule a Meeting</h2>
-            <p className="mb-4 text-gray-600 dark:text-gray-400">
-              Prefer to talk directly? Book a time that works for you:
-            </p>
-            <CalendlyButton url={CALENDLY_URL} />
-          </div>
+          {configured(site.links.calendly) && (
+            <Reveal as="section">
+              <h2 className="mb-3 font-mono text-sm uppercase tracking-[0.16em] text-ink-faint">
+                {t("contactPage.bookTitle")}
+              </h2>
+              <p className="mb-6 max-w-[46ch] text-sm leading-relaxed text-ink-muted">
+                {t("contactPage.bookBody")}
+              </p>
+              <CTALink href={site.links.calendly} external>
+                {t("contactPage.bookCta")}
+                <ArrowRight />
+              </CTALink>
+            </Reveal>
+          )}
         </div>
+        )}
       </div>
     </div>
   );
-} 
+}

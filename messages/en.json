@@ -1,62 +1,163 @@
 {
   "navigation": {
     "home": "Home",
+    "work": "Work",
+    "writing": "Writing",
     "about": "About",
-    "portfolio": "Portfolio",
-    "blog": "Blog",
     "contact": "Contact",
-    "modules": "Modules",
-    "themes": "Themes"
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "hero": {
-    "greeting": "Hello, I'm",
-    "role": "Software Developer",
-    "tagline": "Fullstack Flutter mobile PHP Laravel PrestaShop Developer"
+    "status": "Available for new projects",
+    "lineA": "I design and ship",
+    "emphasis": "AI-augmented",
+    "lineB": "fullstack products.",
+    "lede": "Eight years turning Laravel, PrestaShop and Flutter codebases into revenue. Now I wire Claude agents, eval harnesses and prompt-caching pipelines into them — without a rewrite.",
+    "ctaPrimary": "Start a project",
+    "ctaSecondary": "Read the writing",
+    "scroll": "Scroll"
   },
-  "profile": {
-    "name": "Akram Bakhouche",
-    "imagePlaceholder": "Image Placeholder"
-  },
-  "aboutSection": {
-    "title": "About Me",
-    "description": "I'm a passionate software developer dedicated to creating elegant solutions to complex problems.",
-    "summary": "Passionate web and mobile developer with 8 years of experience building full-stack applications. Expert in PrestaShop/PHP, with strong skills in Vue, Flutter, Dart, and Firebase."
-  },
-  "skillsSection": {
-    "title": "Skills & Expertise"
-  },
-  "skills": {
-    "fullstack": "Fullstack Development (end-to-end projects)",
-    "backend": "Backend (PHP/Laravel/CodeIgniter) & API development",
-    "frontend": "Frontend (HTML5, CSS3/SASS, JavaScript/jQuery)",
-    "ecommerce": "E-commerce (PrestaShop site creation)",
-    "mobile": "Mobile & Web Apps (Flutter, Vue, Firebase)",
-    "prestashop": "Prestashop Module Development (v1.6 & 1.7)"
-  },
-  "moreAboutSection": {
-    "title": "More About Me"
-  },
-  "highlights": {
-    "bilingual": {
-      "label": "Bilingual",
-      "value": "FR / EN"
+  "proof": {
+    "years": {
+      "value": "8",
+      "suffix": "+",
+      "label": "Years shipping production code"
     },
-    "projectManagement": {
-      "label": "Project Management",
-      "value": "A to Z project management, open to challenges, critical feedback and maintenance"
+    "cost": {
+      "value": "80",
+      "suffix": "%",
+      "label": "Inference cost cut with prompt caching"
+    },
+    "languages": {
+      "value": "2",
+      "suffix": "",
+      "label": "Working languages, FR and EN"
     }
   },
-  "portfolioSection": {
-    "title": "My Work",
-    "viewProject": "View Project"
+  "capabilities": {
+    "eyebrow": "What I actually do",
+    "title": "AI work that survives contact with production",
+    "lede": "Demos are easy. These are the parts that decide whether an AI feature is still working in three months.",
+    "agents": {
+      "title": "Agent architecture",
+      "body": "Multi-step Claude SDK agents: tool loops, structured output, retries, and graceful degradation when the model returns something unexpected."
+    },
+    "evals": {
+      "title": "Evals before production",
+      "body": "Fixture-based regression harnesses with tolerance bands, run on every prompt edit and every model update. Silent drift fails CI instead of reaching users."
+    },
+    "cost": {
+      "title": "Cost engineering",
+      "body": "Prompt caching, batching and model routing. One production bill dropped roughly 80% in a single afternoon — same calls, same model, same outputs."
+    },
+    "legacy": {
+      "title": "AI into code that already exists",
+      "body": "Five proven insertion points for bolting agents onto Laravel and PrestaShop apps that are already earning, without pausing the roadmap."
+    },
+    "fullstack": {
+      "title": "Fullstack delivery",
+      "body": "Laravel, Vue, Flutter, Firebase, MySQL. End to end, A to Z, including the maintenance nobody volunteers for."
+    }
   },
-  "blogSection": {
-    "title": "Latest Articles",
-    "readMore": "Read More"
+  "workSection": {
+    "eyebrow": "Selected work",
+    "title": "Things I built",
+    "lede": "A few systems worth opening up. Each AI project has a full architecture write-up behind it.",
+    "viewAll": "See all work"
+  },
+  "workPage": {
+    "eyebrow": "Work",
+    "title": "Everything, in one grid",
+    "lede": "AI systems, e-commerce builds, mobile apps, PrestaShop modules and storefront themes.",
+    "filterLabel": "Filter work by type",
+    "empty": "Nothing in this category yet.",
+    "caseStudy": "Read the write-up",
+    "filters": {
+      "all": "All",
+      "ai": "AI",
+      "ecommerce": "E-commerce",
+      "mobile": "Mobile",
+      "module": "Modules",
+      "theme": "Themes"
+    }
+  },
+  "writingSection": {
+    "eyebrow": "Writing",
+    "title": "Notes from production",
+    "lede": "Patterns, costs and failure modes from shipping AI features into real codebases.",
+    "viewAll": "All articles",
+    "readMore": "Read",
+    "readingTime": "{minutes} min read"
+  },
+  "blogPage": {
+    "eyebrow": "Writing",
+    "title": "Notes from production",
+    "lede": "Architecture write-ups, patterns and cost math from wiring Claude into apps that were already live.",
+    "filterBy": "Filter",
+    "clear": "Clear",
+    "empty": "No articles match that filter.",
+    "backToAll": "All articles",
+    "publishedOn": "Published {date}"
+  },
+  "aboutPage": {
+    "eyebrow": "About",
+    "title": "Eight years of shipping, pointed at AI",
+    "lede": "I am a fullstack developer who spent most of a decade making e-commerce and mobile products work, and now spends it making AI features work inside them.",
+    "storyTitle": "The short version",
+    "story1": "I started where a lot of European web developers start: PHP, PrestaShop, and stores that had to stay online through Black Friday. That taught me the thing that matters most about production software — it is not the feature that is hard, it is the failure mode.",
+    "story2": "Over eight years that widened into Laravel APIs, Vue dashboards, and Flutter apps on Firebase. A to Z delivery: scoping, building, deploying, and then living with what I shipped.",
+    "story3": "When LLMs became genuinely useful I did not switch careers, I pointed the same discipline at them. Agents that retry properly. Prompts that are regression-tested. Caching that is measured rather than assumed. The writing on this site is that work, in the open.",
+    "timelineTitle": "Trajectory",
+    "timeline": {
+      "one": {
+        "period": "Now",
+        "title": "AI-augmented fullstack",
+        "body": "Claude SDK agents, eval harnesses and cost engineering, bolted onto products that are already earning."
+      },
+      "two": {
+        "period": "Recent",
+        "title": "Mobile and modern frontend",
+        "body": "Flutter and Vue apps on Firebase, plus the Laravel APIs underneath them."
+      },
+      "three": {
+        "period": "Foundation",
+        "title": "E-commerce at scale",
+        "body": "PrestaShop stores, custom modules and themes, and the maintenance that comes after launch."
+      }
+    },
+    "stackTitle": "Stack",
+    "philosophyTitle": "How I work",
+    "philosophy": "Ship the smallest thing that proves the idea, instrument it so you know when it breaks, then make it fast. I take critical feedback well and I stay for the maintenance — which is usually the part that decides whether a project was worth doing.",
+    "highlightsTitle": "Good to know",
+    "highlights": {
+      "bilingual": {
+        "label": "Bilingual",
+        "value": "French and English, spoken and written"
+      },
+      "projectManagement": {
+        "label": "Delivery",
+        "value": "A-to-Z project management, open to challenge, and around for the maintenance"
+      }
+    }
+  },
+  "skillsSection": {
+    "title": "Stack"
+  },
+  "skills": {
+    "ai": "AI engineering (Claude SDK, agents, evals, prompt caching)",
+    "fullstack": "Fullstack delivery, end to end",
+    "backend": "Backend — PHP, Laravel, CodeIgniter, REST APIs",
+    "frontend": "Frontend — TypeScript, Vue, React, Tailwind",
+    "ecommerce": "E-commerce — PrestaShop stores, modules, themes",
+    "mobile": "Mobile — Flutter, Dart, Firebase"
   },
   "testimonialSection": {
-    "title": "Testimonials",
-    "goToTestimonial": "Go to testimonial"
+    "eyebrow": "Clients",
+    "title": "What they said",
+    "goToTestimonial": "Go to testimonial",
+    "pause": "Pause testimonials",
+    "play": "Resume testimonials"
   },
   "testimonials": {
     "clientA": {
@@ -68,25 +169,71 @@
       "author": "Client B"
     }
   },
+  "cta": {
+    "eyebrow": "Next step",
+    "title": "Have something to build?",
+    "body": "An AI feature on a product that already ships, or a fullstack build from zero. Tell me the constraint you are stuck on.",
+    "primary": "Start a project",
+    "secondary": "See the work"
+  },
+  "contactPage": {
+    "eyebrow": "Contact",
+    "title": "Let's talk about it",
+    "lede": "Describe the project in a few lines. I reply to everything that is not a recruiter blast.",
+    "formTitle": "Send a message",
+    "infoTitle": "Direct",
+    "bookTitle": "Book a slot",
+    "bookBody": "Prefer talking it through? Grab a time that works for you.",
+    "bookCta": "Open the calendar"
+  },
   "contactSection": {
-    "title": "Get In Touch",
+    "title": "Get in touch",
     "name": "Name",
     "email": "Email",
     "message": "Message",
-    "send": "Send Message",
-    "cta": "🚀 Contact me to discuss your project!",
+    "send": "Send message",
+    "cta": "Start a project",
     "subject": "Subject",
-    "sending": "Sending...",
-    "success": "Message sent successfully! Thank you.",
-    "error": "Error: Failed to send message.",
-    "unexpectedError": "An unexpected error occurred."
+    "sending": "Sending…",
+    "success": "Message sent. I'll get back to you shortly.",
+    "error": "That didn't send. Please try again.",
+    "unexpectedError": "Something went wrong. Please try again."
   },
   "footer": {
-    "copyright": "All rights reserved",
-    "social": "Social Links",
-    "reachOut": "Feel free to explore my portfolio to see examples of my work, or get in touch if you'd like to discuss a project or opportunity. You can reach me via email at"
+    "blurb": "Fullstack engineer building AI-augmented products on top of eight years of Laravel, PrestaShop and Flutter delivery.",
+    "copyright": "All rights reserved."
   },
-  "quotes": {
-    "codeHumor": "\"Code is like humor. When you have to explain it, it's bad.\" - Cory House"
+  "notFound": {
+    "title": "Page not found",
+    "body": "That route doesn't exist — it may have moved when the site was reorganised.",
+    "cta": "Back home"
+  },
+  "schematic": {
+    "caption": "agent pipeline, annotated",
+    "aria": "Schematic of an agent pipeline: sources are scraped, scored by Claude behind a prompt cache, checked by a tolerance-band eval harness, then drafted as structured output.",
+    "scrape": {
+      "label": "scrape",
+      "note": "5 sources"
+    },
+    "score": {
+      "label": "score",
+      "note": "cache: ~80% cost cut"
+    },
+    "evaluate": {
+      "label": "eval",
+      "note": "tolerance bands"
+    },
+    "draft": {
+      "label": "draft",
+      "note": "structured output"
+    }
+  },
+  "figure": {
+    "pipeline": "agent pipeline, annotated",
+    "proof": "measured",
+    "work": "selected work, plan view",
+    "capabilities": "capability matrix",
+    "writing": "notes from production",
+    "testimonials": "client record"
   }
-} 
+}

@@ -1,33 +1,27 @@
-"use client";
-
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import CursorGlow from "./CursorGlow";
-import { usePathname } from "next/navigation";
 
+/**
+ * Page shell. Transparent on purpose — the paper and its drafting grid are
+ * painted by <html>, so nothing here may set a background over them.
+ *
+ * Free of motion: route transitions live in app/template.tsx, the only
+ * wrapper the App Router re-mounts on navigation.
+ */
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
-      <CursorGlow />
+    <div className="flex min-h-screen flex-col text-ink">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:bg-accent-fill focus:px-4 focus:py-2 focus:font-mono focus:text-sm focus:text-accent-on"
+      >
+        Skip to content
+      </a>
       <Navbar />
-      {/* AnimatePresence enables animations when components are added/removed */}
-      {/* key={pathname} ensures animation triggers on route change */}
-      <AnimatePresence mode="wait">
-        <motion.main
-          key={pathname} // Use pathname as key for route transitions
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3 }}
-          className="flex-grow container mx-auto px-4 py-8" // Added padding and container
-        >
-          {children}
-        </motion.main>
-      </AnimatePresence>
+      <main id="main" className="flex-grow">
+        {children}
+      </main>
       <Footer />
     </div>
   );

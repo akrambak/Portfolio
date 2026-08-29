@@ -2,10 +2,7 @@ import "server-only";
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
-import { serialize } from 'next-mdx-remote/serialize';
-import type { MDXRemoteSerializeResult } from 'next-mdx-remote'; // Import the result type
-// Import remark/rehype plugins if needed (e.g., for syntax highlighting with Prism)
-// import remarkPrism from 'remark-prism'; // Example
+
 
 // Define the structure of your frontmatter
 export interface PostFrontmatter {
@@ -20,10 +17,25 @@ export interface PostFrontmatter {
 export interface Post<TFrontmatter> {
   slug: string;
   frontmatter: TFrontmatter;
+  /** Estimated reading time in whole minutes, at 200 wpm. */
+  readingMinutes: number;
+}
+
+/** Word count / 200, floored at 1. Cheap and good enough for a badge. */
+function estimateReadingMinutes(content: string): number {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
 }
 
 export interface PostWithSource<TFrontmatter> extends Post<TFrontmatter> {
-  source: MDXRemoteSerializeResult; // Use the imported type
+  /**
+   * Raw MDX body.
+   *
+   * `MDXRemote` from `next-mdx-remote/rsc` compiles the source itself and
+   * expects a string. Handing it the object returned by the client-side
+   * `serialize()` renders nothing at all — which is what used to happen here.
+   */
+  source: string;
 }
 
 const postsDirectory = path.join(process.cwd(), 'content/blog');
@@ -47,7 +59,7 @@ export function getSortedPostsData(): Post<PostFrontmatter>[] {
   const allPostsData = slugs.map((slug) => {
     const fullPath = path.join(postsDirectory, `${slug}.mdx`);
     const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data } = matter(fileContents);
+    const { data, content } = matter(fileContents);
 
     // Ensure date is treated correctly
     const frontmatter = { ...data, date: data.date.toISOString() } as PostFrontmatter;
@@ -55,6 +67,7 @@ export function getSortedPostsData(): Post<PostFrontmatter>[] {
     return {
       slug,
       frontmatter,
+      readingMinutes: estimateReadingMinutes(content),
     };
   });
 
@@ -73,22 +86,14 @@ export async function getPostData(slug: string): Promise<PostWithSource<PostFron
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
 
-    const mdxSource = await serialize(content, {
-      // Optionally pass remark/rehype plugins
-      mdxOptions: {
-        // remarkPlugins: [remarkPrism], // Enable Prism remark plugin if installed
-        rehypePlugins: [],
-      },
-      parseFrontmatter: false, // We already parsed it with gray-matter
-    });
-
     // Convert date to string for serialization
     const frontmatter = { ...data, date: data.date.toISOString() } as PostFrontmatter;
 
     return {
       slug,
       frontmatter,
-      source: mdxSource,
+      source: content,
+      readingMinutes: estimateReadingMinutes(content),
     };
   } catch (error) {
     console.error(`Error reading post ${slug}:`, error);

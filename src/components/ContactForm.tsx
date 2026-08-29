@@ -1,95 +1,107 @@
 "use client";
 
-import { useState, FormEvent } from 'react';
-import { motion } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useState, type FormEvent } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useTranslations } from "next-intl";
+import { ArrowRight } from "@/components/ui/CTALink";
+import { dur, ease } from "@/lib/motion";
+
+type Status = "idle" | "submitting" | "success" | "error";
+
+const FIELD =
+  "w-full rounded-[2px] border border-hairline bg-surface px-4 py-3 text-base text-ink placeholder:text-ink-faint transition-colors duration-200 hover:border-hairline-strong focus:border-accent focus:outline-none focus-visible:outline-none disabled:opacity-60";
+
+const LABEL = "mb-2 block font-mono text-xs uppercase tracking-[0.14em] text-ink-muted";
 
 export default function ContactForm() {
   const t = useTranslations();
+  const reduced = useReducedMotion();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
   });
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = event.target;
+    setFormData((previous) => ({ ...previous, [name]: value }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setStatus('submitting');
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus("submitting");
     setError(null);
 
     try {
-      // --- API call ---
-      // console.log('Submitting form data:', formData);
-      // await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-          const errorData = await response.json().catch(() => ({})); // Try to parse error
-          throw new Error(errorData.error || t('contactSection.error'));
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || t("contactSection.error"));
       }
-      // --- End of API call section ---
 
-      setStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' }); // Clear form
-    } catch (err: unknown) {
-      let errorMessage = t('contactSection.unexpectedError');
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === 'string') {
-        errorMessage = err;
-      }
-      setError(errorMessage);
-      setStatus('error');
+      setStatus("success");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (caught: unknown) {
+      let message = t("contactSection.unexpectedError");
+      if (caught instanceof Error) message = caught.message;
+      else if (typeof caught === "string") message = caught;
+      setError(message);
+      setStatus("error");
     }
   };
 
+  const submitting = status === "submitting";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('contactSection.name')}
-        </label>
-        <input
-          type="text"
-          name="name"
-          id="name"
-          required
-          value={formData.name}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-indigo-400 dark:focus:ring-indigo-400 sm:text-sm"
-          disabled={status === 'submitting'}
-        />
+    <form onSubmit={handleSubmit} className="space-y-5" noValidate={false}>
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label htmlFor="name" className={LABEL}>
+            {t("contactSection.name")}
+          </label>
+          <input
+            type="text"
+            name="name"
+            id="name"
+            required
+            autoComplete="name"
+            value={formData.name}
+            onChange={handleChange}
+            disabled={submitting}
+            className={FIELD}
+          />
+        </div>
+        <div>
+          <label htmlFor="email" className={LABEL}>
+            {t("contactSection.email")}
+          </label>
+          <input
+            type="email"
+            name="email"
+            id="email"
+            required
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+            disabled={submitting}
+            className={FIELD}
+          />
+        </div>
       </div>
+
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('contactSection.email')}
-        </label>
-        <input
-          type="email"
-          name="email"
-          id="email"
-          required
-          value={formData.email}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-indigo-400 dark:focus:ring-indigo-400 sm:text-sm"
-          disabled={status === 'submitting'}
-        />
-      </div>
-      <div>
-        <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('contactSection.subject')}
+        <label htmlFor="subject" className={LABEL}>
+          {t("contactSection.subject")}
         </label>
         <input
           type="text"
@@ -98,54 +110,60 @@ export default function ContactForm() {
           required
           value={formData.subject}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-indigo-400 dark:focus:ring-indigo-400 sm:text-sm"
-          disabled={status === 'submitting'}
+          disabled={submitting}
+          className={FIELD}
         />
       </div>
+
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          {t('contactSection.message')}
+        <label htmlFor="message" className={LABEL}>
+          {t("contactSection.message")}
         </label>
         <textarea
           name="message"
           id="message"
-          rows={4}
+          rows={6}
           required
           value={formData.message}
           onChange={handleChange}
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:border-indigo-400 dark:focus:ring-indigo-400 sm:text-sm"
-          disabled={status === 'submitting'}
-        ></textarea>
+          disabled={submitting}
+          className={FIELD + " resize-y"}
+        />
       </div>
-      <div>
-        <motion.button
-          type="submit"
-          className="inline-flex w-full justify-center rounded-md border border-transparent bg-accent-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 dark:bg-accent-500 dark:hover:bg-accent-600 dark:focus:ring-offset-gray-900"
-          disabled={status === 'submitting'}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {status === 'submitting' ? t('contactSection.sending') : t('contactSection.send')}
-        </motion.button>
+
+      <button
+        type="submit"
+        disabled={submitting}
+        className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-[2px] bg-accent-fill px-6 font-mono text-sm tracking-tight text-white transition-colors duration-200 hover:bg-accent-fill/88 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+      >
+        {submitting ? t("contactSection.sending") : t("contactSection.send")}
+        {!submitting && <ArrowRight />}
+      </button>
+
+      {/* One live region for both outcomes, so a screen reader hears either. */}
+      <div aria-live="polite" role="status" className="min-h-[1.5rem]">
+        {status === "success" && (
+          <motion.p
+            initial={{ opacity: 0, y: reduced ? 0 : 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0 : dur.base, ease: ease.out }}
+            className="flex items-center gap-2 text-sm text-emerald-500"
+          >
+            {t("contactSection.success")}
+          </motion.p>
+        )}
+        {status === "error" && (
+          <motion.p
+            role="alert"
+            initial={{ opacity: 0, y: reduced ? 0 : 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduced ? 0 : dur.base, ease: ease.out }}
+            className="flex items-center gap-2 text-sm text-red-500"
+          >
+            {error || t("contactSection.error")}
+          </motion.p>
+        )}
       </div>
-      {status === 'success' && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center text-sm text-green-600 dark:text-green-400"
-        >
-          {t('contactSection.success')}
-        </motion.p>
-      )}
-      {status === 'error' && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center text-sm text-red-600 dark:text-red-400"
-        >
-          {error || t('contactSection.error')}
-        </motion.p>
-      )}
     </form>
   );
-} 
+}

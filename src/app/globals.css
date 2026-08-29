@@ -1,86 +1,236 @@
 @import "tailwindcss";
+@import 'prism-themes/themes/prism-base16-ateliersulphurpool.light.css';
 
-/* Import PrismJS theme for syntax highlighting */
-@import 'prism-themes/themes/prism-vsc-dark-plus.css';
+@plugin "@tailwindcss/typography";
+
+/* ------------------------------------------------------------------ tokens */
+
+/*
+ * "Blueprint" — a single committed light palette. There is no dark theme and
+ * no `dark:` variant: one context means the paper texture, ink weights and
+ * grid density can each be tuned once instead of surviving two.
+ *
+ * Utility names stay semantic (canvas / surface / ink / accent) so components
+ * describe intent rather than colour.
+ */
 
 :root {
-  /* Light mode: Keep a light base but maybe slightly off-white? */
-  --background: #f8fafc; /* cool gray 50 */
-  --foreground: #111827; /* gray 900 */
+  color-scheme: light;
 
-  /* Define gradient stops using direct hex/rgb values */
-  /* Values from tailwind.config.ts: colors.purple[600] and colors.pink[500] */
-  --gradient-start: #9333ea;
-  --gradient-end: #ec4899;
+  --canvas: #fbfaf7;          /* paper */
+  --surface: #ffffff;         /* plates sit brighter than the paper */
+  --raised: #f4f2ec;          /* sunk / inset panels */
+  --hairline: #dcd8cc;
+  --hairline-strong: #b9b4a5;
+
+  --ink: #14213d;             /* 15.2:1 on paper */
+  --ink-muted: #4a5468;       /* 7.6:1  */
+  --ink-faint: #6b7280;       /* 4.9:1 — meta text only, never body */
+
+  --accent: #1b3a6b;          /* blueprint: 10.1:1, safe as text */
+  --accent-fill: #1b3a6b;     /* filled, white foreground: 10.1:1 */
+  --accent-on: #ffffff;
+  --accent-2: #b4451f;        /* redline: 5.6:1 — annotations, active marks */
+
+  --grid-minor: rgb(20 33 61 / 0.045);
+  --grid-major: rgb(20 33 61 / 0.08);
+
+  /* Kept outside @theme: `@theme inline` inlines values into utilities and
+     emits no custom property, so a raw-CSS var() reference to one resolves to
+     nothing and silently invalidates the whole declaration. */
+  --ease-out-quart: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+
+  --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-on: var(--accent-on);
+  --color-accent-2: var(--accent-2);
+
+  --font-display: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-plate: 2px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark mode: Use a very dark gray, not pure black */
-    --background: #1f2937; /* gray 800 */
-    --foreground: #f9fafb; /* gray 50 */
+/* -------------------------------------------------------------------- base */
 
-    /* Override gradient stops for dark mode if needed, or use the same */
-    /* --gradient-start: #some_other_color; */
-    /* --gradient-end: #another_color; */
-    /* Keep the same gradient for dark mode for now */
-    --gradient-start: #9333ea;
-    --gradient-end: #ec4899;
+@layer base {
+  /*
+   * The drafting grid lives on <html> as a background image: 8px minor and
+   * 64px major rules. No pseudo-element and no stacking-context reasoning —
+   * the root background paints behind every descendant by definition, and it
+   * scrolls with the document the way ruled paper should.
+   */
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    background-color: var(--canvas);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px 8px);
+  }
+
+  body {
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--accent) 22%, transparent);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent-2);
+    outline-offset: 2px;
+    border-radius: 0;
   }
 }
 
-body {
-  /* Apply the vibrant gradient background */
-  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
-  background-attachment: fixed; /* Keep gradient fixed during scroll */
-  color: var(--foreground);
-  font-family: var(--font-sans); /* Use the font variable from layout */
+/* -------------------------------------------------------------- keyframes */
+
+@keyframes tick-blink {
+  0%, 45%  { opacity: 1; }
+  55%, 100% { opacity: 0.25; }
 }
 
-/* Add any other global styles or overrides here */
+@utility animate-tick { animation: tick-blink 2.8s var(--ease-standard) infinite; }
 
-/* Example: Style scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/* -------------------------------------------------------------- components */
 
-::-webkit-scrollbar-track {
-  background: theme('colors.gray.100');
-  border-radius: 10px;
-}
-.dark ::-webkit-scrollbar-track {
-  background: theme('colors.gray.800');
+/*
+ * Plate hover. The card writes --mx/--my inside a rAF; only this layer's
+ * gradient position changes, so no React render happens on mousemove and the
+ * repaint is scoped to one card.
+ */
+@utility plate {
+  position: relative;
+  isolation: isolate;
 }
 
-::-webkit-scrollbar-thumb {
-  background: theme('colors.gray.400');
-  border-radius: 10px;
-}
-.dark ::-webkit-scrollbar-thumb {
-  background: theme('colors.gray.600');
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: theme('colors.gray.500');
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: theme('colors.gray.500');
+@utility plate-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px 16px);
+  mask-image: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 70%);
 }
 
-/* Ensure code blocks in prose have appropriate background/padding */
-.prose pre,
-.prose-invert pre {
-  /* Use theme colors defined in tailwind.config.ts for consistency if needed */
-  /* background-color: theme('colors.gray.900 / var(--tw-bg-opacity)'); */
-  padding: theme('spacing.4');
-  border-radius: theme('borderRadius.lg');
+/* -------------------------------------------------------------------- prose */
+
+.prose {
+  --tw-prose-body: var(--ink-muted);
+  --tw-prose-headings: var(--ink);
+  --tw-prose-lead: var(--ink-muted);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--ink);
+  --tw-prose-counters: var(--ink-faint);
+  --tw-prose-bullets: var(--hairline-strong);
+  --tw-prose-hr: var(--hairline);
+  --tw-prose-quotes: var(--ink);
+  --tw-prose-quote-borders: var(--accent-2);
+  --tw-prose-captions: var(--ink-faint);
+  --tw-prose-code: var(--ink);
+  --tw-prose-pre-code: #5e6687;
+  --tw-prose-pre-bg: #f5f7ff;
+  --tw-prose-th-borders: var(--hairline-strong);
+  --tw-prose-td-borders: var(--hairline);
+}
+
+.prose :where(h1, h2, h3, h4) {
+  font-family: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  scroll-margin-top: 6rem;
+}
+
+/* Section headings get a drafted rule above them. */
+.prose :where(h2) {
+  border-top: 1px solid var(--hairline);
+  padding-top: 1.4em;
+}
+
+.prose :where(code):not(:where(pre code)) {
+  background-color: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 0.15em 0.4em;
+  font-weight: 500;
+}
+
+.prose :where(code):not(:where(pre code))::before,
+.prose :where(code):not(:where(pre code))::after {
+  content: none;
+}
+
+/* Code listings are drafted plates, not floating blocks. The Prism theme owns
+   the colours; this owns the frame. */
+.prose :where(pre),
+.prose pre[class*="language-"] {
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 1.15rem 1.25rem;
   overflow-x: auto;
+  box-shadow: none;
+}
+
+.prose :where(a) {
+  text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms var(--ease-standard);
+}
+
+.prose :where(a):hover {
+  text-decoration-color: var(--accent);
+}
+
+.prose :where(blockquote) {
+  font-style: normal;
+  border-left-width: 2px;
+}
+
+/* --------------------------------------------------------------- scrollbar */
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--raised); }
+::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+  border: 4px solid var(--raised);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
+
+/* --------------------------------------------------------- reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

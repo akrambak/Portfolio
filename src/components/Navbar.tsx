@@ -1,114 +1,227 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ThemeToggleButton } from "./ThemeToggleButton";
-import LanguageSwitcher from "./LanguageSwitcher";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+} from "framer-motion";
 import { useTranslations } from "next-intl";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { dur, ease } from "@/lib/motion";
+
+const NAV_LINKS = [
+  { href: "/work", key: "work" },
+  { href: "/blog", key: "writing" },
+  { href: "/about", key: "about" },
+  { href: "/contact", key: "contact" },
+] as const;
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const t = useTranslations();
+  const pathname = usePathname();
+  const reduced = useReducedMotion();
+  const [condensed, setCondensed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const navLinks = [
-    { href: "/about", label: t("navigation.about") },
-    { href: "/modules", label: t("navigation.modules") },
-    { href: "/themes", label: t("navigation.themes") },
-    { href: "/portfolio", label: t("navigation.portfolio") },
-    { href: "/blog", label: t("navigation.blog") },
-    { href: "/contact", label: t("navigation.contact") },
-  ];
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const { scrollY } = useScroll();
+
+  // Flips a boolean at a threshold rather than setting state per frame.
+  useMotionValueEvent(scrollY, "change", (value) => {
+    const next = value > 24;
+    setCondensed((current) => (current === next ? current : next));
+  });
+
+  const isActive = useCallback(
+    (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href)),
+    [pathname],
+  );
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // While the sheet is open: lock scroll, close on Escape, move focus in and
+  // hand it back to the toggle on close.
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const toggle = toggleRef.current;
+    document.body.style.overflow = "hidden";
+    firstLinkRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+      toggle?.focus();
+    };
+  }, [menuOpen]);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/30 dark:bg-gray-900/40 backdrop-blur-md shadow-md">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white hover:text-accent-600 dark:hover:text-accent-400 transition-colors">
-              Akram Bakhouche
-            </Link>
-          </div>
-          <div className="hidden items-center md:flex">
-            <div className="ml-10 flex items-baseline space-x-4">
-              {navLinks.map((link) => (
+    <>
+      {/*
+        Fixed, so the height transition is contained to the header's own
+        containing block and never reflows the document beneath it.
+      */}
+      <header
+        className={
+          "fixed inset-x-0 top-0 z-50 transition-[height,background-color,border-color] duration-300 ease-out " +
+          (condensed
+            ? "h-[60px] border-b border-hairline bg-canvas/90 backdrop-blur-sm"
+            : "h-[76px] border-b border-transparent bg-transparent")
+        }
+      >
+        <nav
+          aria-label="Primary"
+          className="mx-auto flex h-full max-w-6xl items-center justify-between gap-6 px-5 sm:px-8"
+        >
+          <Link href="/" className="group flex shrink-0 items-center gap-2.5 py-3">
+            {/* Drafted monogram — the mark, generated rather than drawn. */}
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 items-center justify-center border border-accent font-mono text-[0.72rem] leading-none text-accent transition-colors duration-200 group-hover:border-accent-2 group-hover:text-accent-2"
+            >
+              A
+            </span>
+            <span className="font-mono text-sm tracking-tight text-ink">
+              akram
+              <span
+                className={
+                  "text-ink-faint transition-opacity duration-300 " +
+                  (condensed ? "opacity-0" : "opacity-100")
+                }
+              >
+                {" "}
+                bakhouche
+              </span>
+            </span>
+          </Link>
+
+          <div className="hidden items-center gap-1 md:flex">
+            {NAV_LINKS.map((link) => {
+              const active = isActive(link.href);
+              return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-gray-800 hover:bg-white/50 hover:text-accent-600 dark:text-gray-200 dark:hover:bg-black/20 dark:hover:text-accent-400 transition-colors"
+                  aria-current={active ? "page" : undefined}
+                  className={
+                    "relative px-3.5 py-2 font-mono text-[0.8rem] tracking-tight transition-colors duration-200 " +
+                    (active ? "text-ink" : "text-ink-muted hover:text-ink")
+                  }
                 >
-                  {link.label}
+                  {t(`navigation.${link.key}`)}
+                  {active && (
+                    <motion.span
+                      layoutId="nav-active"
+                      aria-hidden="true"
+                      className="absolute inset-x-2.5 -bottom-0.5 h-[2px] bg-accent-2"
+                      transition={
+                        reduced
+                          ? { duration: 0 }
+                          : { type: "spring", stiffness: 380, damping: 32 }
+                      }
+                    />
+                  )}
                 </Link>
-              ))}
-            </div>
-            <div className="ml-4 flex items-center space-x-2">
-              <LanguageSwitcher />
-              <ThemeToggleButton />
-            </div>
+              );
+            })}
           </div>
-          <div className="-mr-2 flex items-center md:hidden">
-            <LanguageSwitcher />
-            <ThemeToggleButton />
+
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
             <button
-              onClick={toggleMobileMenu}
+              ref={toggleRef}
+              onClick={() => setMenuOpen((open) => !open)}
               type="button"
-              className="ml-2 inline-flex items-center justify-center rounded-md bg-white/40 p-2 text-gray-700 hover:bg-white/60 hover:text-accent-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-accent-500 dark:bg-black/20 dark:text-gray-300 dark:hover:bg-black/40 dark:hover:text-accent-400 transition-colors"
+              aria-expanded={menuOpen}
               aria-controls="mobile-menu"
-              aria-expanded={isMobileMenuOpen}
+              aria-label={menuOpen ? t("navigation.closeMenu") : t("navigation.openMenu")}
+              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-[2px] border border-hairline text-ink transition-colors duration-200 hover:border-accent hover:text-accent md:hidden"
             >
-              <span className="sr-only">Open main menu</span>
               <svg
-                className={`${isMobileMenuOpen ? 'hidden' : 'block'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
                 viewBox="0 0 24 24"
+                className="h-5 w-5"
+                fill="none"
                 stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="square"
                 aria-hidden="true"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              <svg
-                className={`${isMobileMenuOpen ? 'block' : 'hidden'} h-6 w-6`}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
+                {menuOpen ? (
+                  <path d="M6 6l12 12M18 6L6 18" />
+                ) : (
+                  <path d="M4 8h16M4 16h16" />
+                )}
               </svg>
             </button>
           </div>
-        </div>
-      </div>
+        </nav>
+      </header>
 
-      <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:hidden bg-white/50 dark:bg-gray-800/60 backdrop-blur-sm`} id="mobile-menu">
-        <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block rounded-md px-3 py-2 text-base font-medium text-gray-800 hover:bg-white/70 hover:text-accent-600 dark:text-gray-200 dark:hover:bg-black/30 dark:hover:text-accent-400 transition-colors"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </nav>
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            id="mobile-menu"
+            className="fixed inset-0 z-40 bg-canvas px-5 pb-8 pt-[92px] md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduced ? 0 : dur.base, ease: ease.standard }}
+          >
+            <ul className="flex flex-col">
+              {NAV_LINKS.map((link, index) => (
+                <motion.li
+                  key={link.href}
+                  initial={{ opacity: 0, y: reduced ? 0 : 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: reduced ? 0 : dur.base,
+                    ease: ease.out,
+                    delay: reduced ? 0 : 0.04 + index * 0.05,
+                  }}
+                >
+                  <Link
+                    ref={index === 0 ? firstLinkRef : undefined}
+                    href={link.href}
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                    className={
+                      "flex items-center justify-between border-b border-hairline py-4 font-display text-2xl tracking-tight transition-colors duration-200 " +
+                      (isActive(link.href) ? "text-accent-2" : "text-ink hover:text-accent")
+                    }
+                  >
+                    {t(`navigation.${link.key}`)}
+                    <span aria-hidden="true" className="font-mono text-xs text-ink-faint">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </Link>
+                </motion.li>
+              ))}
+            </ul>
+            <div className="mt-8 sm:hidden">
+              <LanguageSwitcher />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Spacer for the fixed header. */}
+      <div aria-hidden="true" className="h-[76px]" />
+    </>
   );
-} 
+}

@@ -1,62 +1,163 @@
 {
   "navigation": {
     "home": "Accueil",
-    "about": "À Propos",
-    "portfolio": "Portfolio",
-    "blog": "Blog",
+    "work": "Projets",
+    "writing": "Articles",
+    "about": "À propos",
     "contact": "Contact",
-    "modules": "Modules",
-    "themes": "Thèmes"
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
   },
   "hero": {
-    "greeting": "Bonjour, je suis",
-    "role": "Développeur Logiciel",
-    "tagline": "Développeur Fullstack Flutter mobile PHP Laravel PrestaShop"
+    "status": "Disponible pour de nouveaux projets",
+    "lineA": "Je conçois et livre des",
+    "emphasis": "produits fullstack",
+    "lineB": "augmentés par l'IA.",
+    "lede": "Huit ans à transformer du Laravel, du PrestaShop et du Flutter en chiffre d'affaires. Aujourd'hui j'y intègre des agents Claude, des harnais d'évaluation et du prompt caching — sans tout réécrire.",
+    "ctaPrimary": "Démarrer un projet",
+    "ctaSecondary": "Lire les articles",
+    "scroll": "Défiler"
   },
-  "profile": {
-    "name": "Akram Bakhouche",
-    "imagePlaceholder": "Image Placeholder"
-  },
-  "aboutSection": {
-    "title": "À Propos de Moi",
-    "description": "Je suis un développeur passionné dédié à créer des solutions élégantes à des problèmes complexes.",
-    "summary": "Développeur web et mobile passionné avec 8 ans d'expérience dans la création d'applications full-stack. Expert en PrestaShop/PHP, avec de solides compétences en Vue, Flutter, Dart et Firebase."
-  },
-  "skillsSection": {
-    "title": "Compétences & Expertise"
-  },
-  "skills": {
-    "fullstack": "Développement Fullstack (projets de bout en bout)",
-    "backend": "Backend (PHP/Laravel/CodeIgniter) & développement d'API",
-    "frontend": "Frontend (HTML5, CSS3/SASS, JavaScript/jQuery)",
-    "ecommerce": "E-commerce (création de sites PrestaShop)",
-    "mobile": "Applications Mobiles & Web (Flutter, Vue, Firebase)",
-    "prestashop": "Développement de Modules PrestaShop (v1.6 & 1.7)"
-  },
-  "moreAboutSection": {
-    "title": "Plus Sur Moi"
-  },
-  "highlights": {
-    "bilingual": {
-      "label": "Bilingue",
-      "value": "FR / EN"
+  "proof": {
+    "years": {
+      "value": "8",
+      "suffix": "+",
+      "label": "Années de code en production"
     },
-    "projectManagement": {
-      "label": "Gestion de Projet",
-      "value": "Gestion de projet de A à Z, ouvert aux défis, aux critiques constructives et à la maintenance"
+    "cost": {
+      "value": "80",
+      "suffix": "%",
+      "label": "De coût d'inférence économisé via le prompt caching"
+    },
+    "languages": {
+      "value": "2",
+      "suffix": "",
+      "label": "Langues de travail, FR et EN"
     }
   },
-  "portfolioSection": {
-    "title": "Mes Projets",
-    "viewProject": "Voir le Projet"
+  "capabilities": {
+    "eyebrow": "Concrètement",
+    "title": "De l'IA qui tient en production",
+    "lede": "La démo est facile. Voici les parties qui décident si une fonctionnalité IA marche encore dans trois mois.",
+    "agents": {
+      "title": "Architecture d'agents",
+      "body": "Agents Claude SDK multi-étapes : boucles d'outils, sorties structurées, reprises sur erreur et dégradation propre quand le modèle renvoie l'inattendu."
+    },
+    "evals": {
+      "title": "Évaluations avant la prod",
+      "body": "Harnais de non-régression sur fixtures avec bandes de tolérance, rejoués à chaque modification de prompt et chaque mise à jour de modèle. La dérive silencieuse casse la CI, pas l'expérience utilisateur."
+    },
+    "cost": {
+      "title": "Optimisation des coûts",
+      "body": "Prompt caching, batching et routage de modèles. Une facture de production réduite d'environ 80 % en un après-midi — mêmes appels, même modèle, mêmes résultats."
+    },
+    "legacy": {
+      "title": "De l'IA dans du code existant",
+      "body": "Cinq points d'insertion éprouvés pour greffer des agents sur des applications Laravel et PrestaShop déjà rentables, sans mettre la roadmap en pause."
+    },
+    "fullstack": {
+      "title": "Livraison fullstack",
+      "body": "Laravel, Vue, Flutter, Firebase, MySQL. De A à Z, maintenance comprise — celle dont personne ne se porte volontaire."
+    }
   },
-  "blogSection": {
-    "title": "Derniers Articles",
-    "readMore": "Lire Plus"
+  "workSection": {
+    "eyebrow": "Sélection",
+    "title": "Ce que j'ai construit",
+    "lede": "Quelques systèmes qui méritent qu'on les ouvre. Chaque projet IA est accompagné d'un article d'architecture complet.",
+    "viewAll": "Voir tous les projets"
+  },
+  "workPage": {
+    "eyebrow": "Projets",
+    "title": "Tout, dans une seule grille",
+    "lede": "Systèmes IA, e-commerce, applications mobiles, modules PrestaShop et thèmes de boutique.",
+    "filterLabel": "Filtrer les projets par type",
+    "empty": "Rien dans cette catégorie pour l'instant.",
+    "caseStudy": "Lire l'article",
+    "filters": {
+      "all": "Tout",
+      "ai": "IA",
+      "ecommerce": "E-commerce",
+      "mobile": "Mobile",
+      "module": "Modules",
+      "theme": "Thèmes"
+    }
+  },
+  "writingSection": {
+    "eyebrow": "Articles",
+    "title": "Notes de production",
+    "lede": "Patterns, coûts et modes de défaillance rencontrés en intégrant de l'IA dans du vrai code.",
+    "viewAll": "Tous les articles",
+    "readMore": "Lire",
+    "readingTime": "{minutes} min de lecture"
+  },
+  "blogPage": {
+    "eyebrow": "Articles",
+    "title": "Notes de production",
+    "lede": "Architectures, patterns et calculs de coûts issus de l'intégration de Claude dans des applications déjà en ligne.",
+    "filterBy": "Filtrer",
+    "clear": "Réinitialiser",
+    "empty": "Aucun article ne correspond à ce filtre.",
+    "backToAll": "Tous les articles",
+    "publishedOn": "Publié le {date}"
+  },
+  "aboutPage": {
+    "eyebrow": "À propos",
+    "title": "Huit ans de livraison, orientés IA",
+    "lede": "Développeur fullstack, j'ai passé près d'une décennie à faire fonctionner des produits e-commerce et mobiles. Je passe désormais ce temps à y faire fonctionner l'IA.",
+    "storyTitle": "En bref",
+    "story1": "J'ai commencé là où beaucoup de développeurs web européens commencent : PHP, PrestaShop, et des boutiques qui devaient tenir le Black Friday. J'y ai appris l'essentiel du logiciel en production — la difficulté n'est pas la fonctionnalité, c'est le mode de défaillance.",
+    "story2": "En huit ans, cela s'est élargi aux API Laravel, aux tableaux de bord Vue et aux applications Flutter sur Firebase. Une livraison de A à Z : cadrage, développement, déploiement, puis vivre avec ce qu'on a livré.",
+    "story3": "Quand les LLM sont devenus réellement utiles, je n'ai pas changé de métier : j'ai pointé la même rigueur dessus. Des agents qui reprennent proprement. Des prompts testés en non-régression. Du cache mesuré plutôt que supposé. Les articles de ce site, c'est ce travail, à découvert.",
+    "timelineTitle": "Trajectoire",
+    "timeline": {
+      "one": {
+        "period": "Aujourd'hui",
+        "title": "Fullstack augmenté par l'IA",
+        "body": "Agents Claude SDK, harnais d'évaluation et optimisation des coûts, greffés sur des produits déjà rentables."
+      },
+      "two": {
+        "period": "Récemment",
+        "title": "Mobile et frontend moderne",
+        "body": "Applications Flutter et Vue sur Firebase, et les API Laravel qui les alimentent."
+      },
+      "three": {
+        "period": "Socle",
+        "title": "E-commerce à l'échelle",
+        "body": "Boutiques PrestaShop, modules et thèmes sur mesure, et la maintenance qui suit la mise en ligne."
+      }
+    },
+    "stackTitle": "Stack",
+    "philosophyTitle": "Ma façon de travailler",
+    "philosophy": "Livrer la plus petite chose qui prouve l'idée, l'instrumenter pour savoir quand elle casse, puis l'accélérer. J'accueille bien la critique et je reste pour la maintenance — c'est souvent elle qui décide si le projet en valait la peine.",
+    "highlightsTitle": "Bon à savoir",
+    "highlights": {
+      "bilingual": {
+        "label": "Bilingue",
+        "value": "Français et anglais, à l'oral comme à l'écrit"
+      },
+      "projectManagement": {
+        "label": "Livraison",
+        "value": "Gestion de projet de A à Z, ouvert à la critique, présent pour la maintenance"
+      }
+    }
+  },
+  "skillsSection": {
+    "title": "Stack"
+  },
+  "skills": {
+    "ai": "Ingénierie IA (Claude SDK, agents, évaluations, prompt caching)",
+    "fullstack": "Livraison fullstack, de bout en bout",
+    "backend": "Backend — PHP, Laravel, CodeIgniter, API REST",
+    "frontend": "Frontend — TypeScript, Vue, React, Tailwind",
+    "ecommerce": "E-commerce — boutiques PrestaShop, modules, thèmes",
+    "mobile": "Mobile — Flutter, Dart, Firebase"
   },
   "testimonialSection": {
-    "title": "Témoignages",
-    "goToTestimonial": "Aller au témoignage"
+    "eyebrow": "Clients",
+    "title": "Ce qu'ils en disent",
+    "goToTestimonial": "Aller au témoignage",
+    "pause": "Mettre les témoignages en pause",
+    "play": "Reprendre les témoignages"
   },
   "testimonials": {
     "clientA": {
@@ -68,25 +169,71 @@
       "author": "Client B"
     }
   },
+  "cta": {
+    "eyebrow": "Prochaine étape",
+    "title": "Un projet en tête ?",
+    "body": "Une fonctionnalité IA sur un produit déjà en ligne, ou un développement fullstack depuis zéro. Dites-moi sur quelle contrainte vous bloquez.",
+    "primary": "Démarrer un projet",
+    "secondary": "Voir les projets"
+  },
+  "contactPage": {
+    "eyebrow": "Contact",
+    "title": "Parlons-en",
+    "lede": "Décrivez le projet en quelques lignes. Je réponds à tout ce qui n'est pas un mail de masse.",
+    "formTitle": "Envoyer un message",
+    "infoTitle": "Direct",
+    "bookTitle": "Réserver un créneau",
+    "bookBody": "Vous préférez en parler de vive voix ? Choisissez un horaire qui vous arrange.",
+    "bookCta": "Ouvrir le calendrier"
+  },
   "contactSection": {
-    "title": "Me Contacter",
+    "title": "Me contacter",
     "name": "Nom",
-    "email": "Email",
+    "email": "E-mail",
     "message": "Message",
-    "send": "Envoyer le Message",
-    "cta": "🚀 Contactez-moi pour discuter de votre projet !",
+    "send": "Envoyer le message",
+    "cta": "Démarrer un projet",
     "subject": "Sujet",
-    "sending": "Envoi en cours...",
-    "success": "Message envoyé avec succès ! Merci.",
-    "error": "Erreur : Échec de l'envoi du message.",
-    "unexpectedError": "Une erreur inattendue s'est produite."
+    "sending": "Envoi…",
+    "success": "Message envoyé. Je reviens vers vous rapidement.",
+    "error": "L'envoi a échoué. Merci de réessayer.",
+    "unexpectedError": "Une erreur est survenue. Merci de réessayer."
   },
   "footer": {
-    "copyright": "Tous droits réservés",
-    "social": "Liens Sociaux",
-    "reachOut": "N'hésitez pas à explorer mon portfolio pour voir des exemples de mon travail, ou à me contacter si vous souhaitez discuter d'un projet ou d'une opportunité. Vous pouvez me joindre par email à"
+    "blurb": "Développeur fullstack, je construis des produits augmentés par l'IA sur huit ans de livraison Laravel, PrestaShop et Flutter.",
+    "copyright": "Tous droits réservés."
   },
-  "quotes": {
-    "codeHumor": "\"Le code est comme l'humour. Quand on doit l'expliquer, c'est mauvais.\" - Cory House"
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette adresse n'existe pas — elle a peut-être changé lors de la réorganisation du site.",
+    "cta": "Retour à l'accueil"
+  },
+  "schematic": {
+    "caption": "pipeline d'agents, annoté",
+    "aria": "Schéma d'un pipeline d'agents : les sources sont collectées, notées par Claude derrière un cache de prompts, vérifiées par un harnais d'évaluation à bandes de tolérance, puis rédigées en sortie structurée.",
+    "scrape": {
+      "label": "collecte",
+      "note": "5 sources"
+    },
+    "score": {
+      "label": "notation",
+      "note": "cache : -80 % de coût"
+    },
+    "evaluate": {
+      "label": "éval",
+      "note": "bandes de tolérance"
+    },
+    "draft": {
+      "label": "rédaction",
+      "note": "sortie structurée"
+    }
+  },
+  "figure": {
+    "pipeline": "pipeline d'agents, annoté",
+    "proof": "mesuré",
+    "work": "projets, vue en plan",
+    "capabilities": "matrice de compétences",
+    "writing": "notes de production",
+    "testimonials": "retours clients"
   }
-} 
+}
