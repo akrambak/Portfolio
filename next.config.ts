@@ -6,11 +6,14 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
+
+  // Portfolio / Modules / Themes collapsed into a single filterable /work grid.
+  // Permanent so existing inbound links and search results follow.
   async redirects() {
     return [
       { source: "/portfolio", destination: "/work", permanent: true },
-      { source: "/modules", destination: "/work?c=modules", permanent: true },
-      { source: "/themes", destination: "/work?c=ecommerce", permanent: true },
+      { source: "/modules", destination: "/work", permanent: true },
+      { source: "/themes", destination: "/work", permanent: true },
     ];
   },
 };

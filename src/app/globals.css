@@ -1,337 +1,229 @@
 @import "tailwindcss";
+@import 'prism-themes/themes/prism-base16-ateliersulphurpool.light.css';
+
 @plugin "@tailwindcss/typography";
 
-@custom-variant dark (&:where(.dark, .dark *));
+/* ------------------------------------------------------------------ tokens */
 
-/* ── Instrument palette ─────────────────────────────────────────────
-   Paper / ink / graphite carry the page. `signal` is the only hue and
-   is rationed: hairline accents, links, one filled control per view. */
+/*
+ * "Blueprint" — a single committed light palette. There is no dark theme and
+ * no `dark:` variant: one context means the paper texture, ink weights and
+ * grid density can each be tuned once instead of surviving two.
+ *
+ * Utility names stay semantic (canvas / surface / ink / accent) so components
+ * describe intent rather than colour.
+ */
+
 :root {
-  --paper: #fbfaf7;
-  --paper-raised: #ffffff;
-  --paper-sunken: #f2f0ea;
-  --ink: #12161b;
-  --graphite: #4a525c;
-  --faint: #6b7480;
-  --rule: rgb(18 22 27 / 0.13);
-  --rule-strong: rgb(18 22 27 / 0.28);
-  --signal: #2547d0;
-  --signal-hover: #1a36a8;
-  --signal-wash: rgb(37 71 208 / 0.08);
-  --signal-edge: rgb(37 71 208 / 0.38);
-  --hero-line: rgb(18 22 27 / 0.16);
-  --hero-line-strong: rgb(18 22 27 / 0.32);
-  --hero-wash: rgb(37 71 208 / 0.20);
+  color-scheme: light;
 
-  /* Inverted band. In light mode it is ink; in dark mode a raised charcoal,
-     so the band always reads as a distinct field against the page. */
-  --band-bg: #12161b;
-  --band-raised: #1b2129;
-  --band-sunken: #0c1014;
-  --band-fg: #f5f6f7;
-  --band-muted: #9aa3ae;
-  --band-faint: #79828d;
-  --band-rule: rgb(245 246 247 / 0.15);
-  --band-rule-strong: rgb(245 246 247 / 0.32);
-  --band-signal: #7ea0ff;
-  /* Gain figures only, and only on a dark band: 14.6:1 there, unusable on paper. */
-  --gain: #d9f24b;
-  --on-signal: #ffffff;
-}
+  --canvas: #fbfaf7;          /* paper */
+  --surface: #ffffff;         /* plates sit brighter than the paper */
+  --raised: #f4f2ec;          /* sunk / inset panels */
+  --hairline: #dcd8cc;
+  --hairline-strong: #b9b4a5;
 
-.dark {
-  --paper: #12161b;
-  --paper-raised: #171d24;
-  --paper-sunken: #0d1116;
-  --ink: #f2f3f5;
-  --graphite: #99a2ad;
-  --faint: #79828d;
-  --rule: rgb(242 243 245 / 0.13);
-  --rule-strong: rgb(242 243 245 / 0.3);
-  --signal: #7ea0ff;
-  --signal-hover: #a3bcff;
-  --signal-wash: rgb(126 160 255 / 0.12);
-  --signal-edge: rgb(126 160 255 / 0.42);
-  --hero-line: rgb(242 243 245 / 0.13);
-  --hero-line-strong: rgb(242 243 245 / 0.28);
-  --hero-wash: rgb(126 160 255 / 0.22);
+  --ink: #14213d;             /* 15.2:1 on paper */
+  --ink-muted: #4a5468;       /* 7.6:1  */
+  --ink-faint: #6b7280;       /* 4.9:1 — meta text only, never body */
 
-  --band-bg: #1b222b;
-  --band-raised: #242c37;
-  --band-sunken: #141a21;
-  --band-fg: #f5f6f7;
-  --band-muted: #9aa3ae;
-  --band-faint: #79828d;
-  --band-rule: rgb(245 246 247 / 0.14);
-  --band-rule-strong: rgb(245 246 247 / 0.30);
-  --band-signal: #7ea0ff;
-  --gain: #d9f24b;
-  --on-signal: #0b0e12;
+  --accent: #1b3a6b;          /* blueprint: 10.1:1, safe as text */
+  --accent-fill: #1b3a6b;     /* filled, white foreground: 10.1:1 */
+  --accent-on: #ffffff;
+  --accent-2: #b4451f;        /* redline: 5.6:1 — annotations, active marks */
+
+  --grid-minor: rgb(20 33 61 / 0.045);
+  --grid-major: rgb(20 33 61 / 0.08);
+
+  /* Kept outside @theme: `@theme inline` inlines values into utilities and
+     emits no custom property, so a raw-CSS var() reference to one resolves to
+     nothing and silently invalidates the whole declaration. */
+  --ease-out-quart: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-raised: var(--paper-raised);
-  --color-sunken: var(--paper-sunken);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+
   --color-ink: var(--ink);
-  --color-graphite: var(--graphite);
-  --color-faint: var(--faint);
-  --color-rule: var(--rule);
-  --color-rule-strong: var(--rule-strong);
-  --color-signal: var(--signal);
-  --color-signal-hover: var(--signal-hover);
-  --color-signal-wash: var(--signal-wash);
-  --color-signal-edge: var(--signal-edge);
-  --color-hero-line: var(--hero-line);
-  --color-hero-line-strong: var(--hero-line-strong);
-  --color-gain: var(--gain);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
 
-  --text-display: clamp(2.25rem, 7.5vw, 6.5rem);
-  --text-display--line-height: 0.98;
-  --text-display--letter-spacing: -0.04em;
-  --text-mega: clamp(2rem, 5.5vw, 4.25rem);
-  --text-mega--line-height: 1;
-  --text-mega--letter-spacing: -0.035em;
-  --color-on-signal: var(--on-signal);
+  --color-accent: var(--accent);
+  --color-accent-fill: var(--accent-fill);
+  --color-accent-on: var(--accent-on);
+  --color-accent-2: var(--accent-2);
 
-  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+  --font-display: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --text-eyebrow: 0.6875rem;
-  --text-eyebrow--line-height: 1;
-  --text-eyebrow--letter-spacing: 0.14em;
+  --radius-plate: 2px;
 }
 
+/* -------------------------------------------------------------------- base */
+
 @layer base {
+  /*
+   * The drafting grid lives on <html> as a background image: 8px minor and
+   * 64px major rules. No pseudo-element and no stacking-context reasoning —
+   * the root background paints behind every descendant by definition, and it
+   * scrolls with the document the way ruled paper should.
+   */
   html {
     scroll-behavior: smooth;
-    color-scheme: light;
-  }
-
-  html.dark {
-    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+    background-color: var(--canvas);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px 64px),
+      repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px 8px);
   }
 
   body {
-    background-color: var(--paper);
+    background: transparent;
     color: var(--ink);
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
+    font-family: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
+    font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background-color: var(--signal-wash);
+    background-color: color-mix(in oklab, var(--accent) 22%, transparent);
+    color: var(--ink);
   }
 
   :focus-visible {
-    outline: 2px solid var(--signal);
-    outline-offset: 3px;
-    border-radius: 2px;
-  }
-
-  /* Figures line up in columns wherever they appear. */
-  .font-mono,
-  time,
-  th,
-  td {
-    font-variant-numeric: tabular-nums;
-  }
-
-  h1,
-  h2,
-  h3 {
-    font-family: var(--font-display);
-    letter-spacing: -0.025em;
-    text-wrap: balance;
-  }
-
-  p {
-    text-wrap: pretty;
-  }
-
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--rule-strong);
-    border: 3px solid var(--paper);
-    border-radius: 6px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--graphite);
+    outline: 2px solid var(--accent-2);
+    outline-offset: 2px;
+    border-radius: 0;
   }
 }
 
-/* ── MDX prose ─────────────────────────────────────────────────────── */
+/* -------------------------------------------------------------- keyframes */
+
+@keyframes tick-blink {
+  0%, 45%  { opacity: 1; }
+  55%, 100% { opacity: 0.25; }
+}
+
+@utility animate-tick { animation: tick-blink 2.8s var(--ease-standard) infinite; }
+
+/* -------------------------------------------------------------- components */
+
+/*
+ * Plate hover. The card writes --mx/--my inside a rAF; only this layer's
+ * gradient position changes, so no React render happens on mousemove and the
+ * repaint is scoped to one card.
+ */
+@utility plate {
+  position: relative;
+  isolation: isolate;
+}
+
+@utility plate-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px 16px);
+  mask-image: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), #000 0%, transparent 70%);
+}
+
+/* -------------------------------------------------------------------- prose */
+
 .prose {
-  --tw-prose-body: var(--graphite);
+  --tw-prose-body: var(--ink-muted);
   --tw-prose-headings: var(--ink);
-  --tw-prose-lead: var(--graphite);
-  --tw-prose-links: var(--ink);
+  --tw-prose-lead: var(--ink-muted);
+  --tw-prose-links: var(--accent);
   --tw-prose-bold: var(--ink);
-  --tw-prose-counters: var(--faint);
-  --tw-prose-bullets: var(--rule-strong);
-  --tw-prose-hr: var(--rule);
+  --tw-prose-counters: var(--ink-faint);
+  --tw-prose-bullets: var(--hairline-strong);
+  --tw-prose-hr: var(--hairline);
   --tw-prose-quotes: var(--ink);
-  --tw-prose-quote-borders: var(--signal);
-  --tw-prose-captions: var(--faint);
+  --tw-prose-quote-borders: var(--accent-2);
+  --tw-prose-captions: var(--ink-faint);
   --tw-prose-code: var(--ink);
-  --tw-prose-th-borders: var(--rule-strong);
-  --tw-prose-td-borders: var(--rule);
+  --tw-prose-pre-code: #5e6687;
+  --tw-prose-pre-bg: #f5f7ff;
+  --tw-prose-th-borders: var(--hairline-strong);
+  --tw-prose-td-borders: var(--hairline);
 }
 
-.prose :where(h2, h3, h4) {
+.prose :where(h1, h2, h3, h4) {
+  font-family: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
   scroll-margin-top: 6rem;
 }
 
-.prose :where(a) {
-  text-decoration-color: var(--signal);
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
+/* Section headings get a drafted rule above them. */
+.prose :where(h2) {
+  border-top: 1px solid var(--hairline);
+  padding-top: 1.4em;
 }
 
-.prose :where(a):hover {
-  color: var(--signal);
+.prose :where(code):not(:where(pre code)) {
+  background-color: var(--raised);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 0.15em 0.4em;
+  font-weight: 500;
 }
 
-.prose :where(code):not(pre code) {
-  background-color: var(--paper-sunken);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 0.1em 0.35em;
-  font-weight: 450;
-  font-size: 0.875em;
-}
-
-.prose :where(code):not(pre code)::before,
-.prose :where(code):not(pre code)::after {
+.prose :where(code):not(:where(pre code))::before,
+.prose :where(code):not(:where(pre code))::after {
   content: none;
 }
 
+/* Code listings are drafted plates, not floating blocks. The Prism theme owns
+   the colours; this owns the frame. */
+.prose :where(pre),
+.prose pre[class*="language-"] {
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 1.15rem 1.25rem;
+  overflow-x: auto;
+  box-shadow: none;
+}
+
+.prose :where(a) {
+  text-decoration-color: color-mix(in oklab, var(--accent) 40%, transparent);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 200ms var(--ease-standard);
+}
+
+.prose :where(a):hover {
+  text-decoration-color: var(--accent);
+}
+
 .prose :where(blockquote) {
-  border-left-width: 2px;
   font-style: normal;
-  font-weight: 450;
+  border-left-width: 2px;
 }
 
-/* shiki dual-theme: swap the token colours with the site theme. */
-.prose :where(pre) {
-  background-color: var(--paper-sunken) !important;
-  border: 1px solid var(--rule);
-  border-radius: 6px;
-  font-size: 0.8125rem;
-  line-height: 1.7;
-}
+/* --------------------------------------------------------------- scrollbar */
 
-.dark .prose :where(pre) span {
-  color: var(--shiki-dark) !important;
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: var(--raised); }
+::-webkit-scrollbar-thumb {
+  background: var(--hairline-strong);
+  border: 4px solid var(--raised);
+  border-radius: 0;
 }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-faint); }
 
-[data-rehype-pretty-code-figure] pre [data-line] {
-  padding-inline: 1.1rem;
-}
-
-/* ── Hero band ──────────────────────────────────────────────────────
-   A full-bleed instrument face behind the hero: a soft wash, a drafting
-   column grid, registration marks and a measuring rule, each on its own
-   depth. Parallax is scroll-driven — no listeners, no rAF, no JS. */
-.hero-wash {
-  background: radial-gradient(72rem 46rem at 74% 8%, var(--hero-wash), transparent 66%);
-}
-
-/* Coarse plate grid — the deep plane. Cross-hatched, because a moving grid
-   is what makes the depth readable; a moving wash reads as nothing. */
-.hero-grid-coarse {
-  background-image:
-    repeating-linear-gradient(to right, var(--hero-line) 0 1px, transparent 1px 88px),
-    repeating-linear-gradient(to bottom, var(--hero-line) 0 1px, transparent 1px 88px);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 2%, #000 22%, #000 62%, transparent 92%);
-  mask-image: linear-gradient(to bottom, transparent 2%, #000 22%, #000 62%, transparent 92%);
-}
-
-/* Fine scale — a mid plane at a different pitch, so the two grids shear past
-   each other as you scroll. That shear is the effect. */
-.hero-grid-fine {
-  background-image: repeating-linear-gradient(to right, var(--hero-line) 0 1px, transparent 1px 24px);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 26%, #000 44%, #000 56%, transparent 74%);
-  mask-image: linear-gradient(to bottom, transparent 26%, #000 44%, #000 56%, transparent 74%);
-}
-
-/* A single signal trace across the plate. The most legible depth cue in the
-   composition: one high-contrast line crossing fixed content. */
-.hero-scan {
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--signal-edge) 16%,
-    var(--signal-edge) 58%,
-    transparent 92%
-  );
-}
-
-/* Instrument geometry: a dial face and two plotted traces. Large, slow-moving
-   forms give the eye something to track — that is what reads as depth. */
-.hero-arcs {
-  color: var(--hero-line-strong);
-}
-
-.hero-trace {
-  color: var(--signal);
-  filter: drop-shadow(0 0 14px var(--signal-edge));
-}
-
-.hero-trace-dim {
-  color: var(--hero-line-strong);
-}
-
-.hero-ruler {
-  background-image:
-    repeating-linear-gradient(to right, var(--hero-line-strong) 0 1px, transparent 1px 10px);
-  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 46%, transparent 86%);
-  mask-image: linear-gradient(to right, #000 0%, #000 46%, transparent 86%);
-}
-
-@keyframes parallax {
-  to {
-    transform: translate3d(var(--depth-x, 0), var(--depth), 0)
-      scale(var(--depth-scale, 1));
-  }
-}
-
-/* Progressive enhancement: without scroll timelines the layers simply
-   hold their position, which is the same composition minus the depth. */
-/* The timeline is split into its own rule on purpose: Lightning CSS folds
-   adjacent longhands into the `animation` shorthand, and `animation-timeline`
-   is reset-only there — merged, it silently disables the whole effect. The
-   zero-specificity `:where(*)` keeps the two rules unmergeable. */
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .parallax {
-      animation: parallax linear both;
-      will-change: transform;
-    }
-
-    .parallax:where(*) {
-      animation-duration: auto;
-      animation-timeline: scroll(root block);
-      animation-range: 0 145vh;
-    }
-  }
-}
+/* --------------------------------------------------------- reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  html { scroll-behavior: auto; }
 
   *,
   *::before,
@@ -339,142 +231,6 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
-}
-
-/* ── Motion ─────────────────────────────────────────────────────────
-   One orchestrated load sequence, then nothing until you scroll.
-   Scroll reveals are progressive enhancement: without support the
-   content is simply already there. */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes draw {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-.animate-rise {
-  animation: rise 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
-}
-
-/* A charge travelling the connector: the one ambient motion on the page. */
-@keyframes flow {
-  0% {
-    transform: translateY(-140%);
-    opacity: 0;
-  }
-  25%,
-  70% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(340%);
-    opacity: 0;
-  }
-}
-
-.animate-flow {
-  animation: flow 2.8s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-}
-
-.animate-draw {
-  transform-origin: left;
-  animation: draw 0.6s cubic-bezier(0.2, 0.6, 0.2, 1) backwards;
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: rise linear both;
-    }
-
-    .reveal:where(*) {
-      animation-duration: auto;
-      animation-timeline: view();
-      animation-range: entry 10% cover 22%;
-    }
-  }
-}
-
-/* ── Bands ──────────────────────────────────────────────────────────
-   A band re-points the semantic tokens rather than restyling anything.
-   Every component inside inverts for free — that is the whole reason
-   the palette is tokens and not `dark:` variants. */
-.band-invert {
-  --paper: var(--band-bg);
-  --paper-raised: var(--band-raised);
-  --paper-sunken: var(--band-sunken);
-  --ink: var(--band-fg);
-  --graphite: var(--band-muted);
-  --faint: var(--band-faint);
-  --rule: var(--band-rule);
-  --rule-strong: var(--band-rule-strong);
-  --signal: var(--band-signal);
-  --signal-hover: #a3bcff;
-  --signal-wash: rgb(126 160 255 / 0.14);
-  --signal-edge: rgb(126 160 255 / 0.42);
-  --on-signal: #0b0e12;
-  --hero-line: rgb(245 246 247 / 0.10);
-  --hero-line-strong: rgb(245 246 247 / 0.24);
-  --hero-wash: rgb(126 160 255 / 0.20);
-  background-color: var(--band-bg);
-  color: var(--band-fg);
-}
-
-.band-sunken {
-  background-color: var(--paper-sunken);
-}
-
-/* ── Kinetic display type ───────────────────────────────────────────
-   The headline is plotted, not faded: a hard clip edge sweeps each line
-   left to right, the way a pen plotter lays down a stroke. */
-@keyframes plot {
-  from {
-    clip-path: inset(-0.25em 100% -0.35em 0);
-  }
-  to {
-    clip-path: inset(-0.25em -0.18em -0.35em 0);
-  }
-}
-
-.plot-line {
-  animation: plot 0.85s cubic-bezier(0.22, 0.7, 0.16, 1) backwards;
-}
-
-/* ── Counting numerals ──────────────────────────────────────────────
-   An integer ticker with no JavaScript. Without @property support the
-   custom property is not interpolable, so it lands on the final value
-   immediately — still correct, just not animated. */
-@property --num {
-  syntax: "<integer>";
-  initial-value: 0;
-  inherits: false;
-}
-
-@keyframes tick {
-  to {
-    --num: var(--to);
-  }
-}
-
-.ticker {
-  counter-reset: num var(--num);
-  animation: tick 1.4s cubic-bezier(0.16, 0.8, 0.24, 1) both;
-}
-
-.ticker::after {
-  content: counter(num);
 }

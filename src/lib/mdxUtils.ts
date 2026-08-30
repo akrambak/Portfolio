@@ -1,84 +1,102 @@
 import "server-only";
-import fs from "fs";
-import path from "path";
-import matter from "gray-matter";
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
 
+
+// Define the structure of your frontmatter
 export interface PostFrontmatter {
   title: string;
-  date: string;
+  date: string; // Keep as string for serialization
   excerpt: string;
   category?: string;
   tags?: string[];
+  [key: string]: string | string[] | undefined; // More specific type instead of any
+}
+
+export interface Post<TFrontmatter> {
+  slug: string;
+  frontmatter: TFrontmatter;
+  /** Estimated reading time in whole minutes, at 200 wpm. */
   readingMinutes: number;
 }
 
-export interface Post {
-  slug: string;
-  frontmatter: PostFrontmatter;
+/** Word count / 200, floored at 1. Cheap and good enough for a badge. */
+function estimateReadingMinutes(content: string): number {
+  const words = content.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 200));
 }
 
-export interface PostWithSource extends Post {
-  content: string;
+export interface PostWithSource<TFrontmatter> extends Post<TFrontmatter> {
+  /**
+   * Raw MDX body.
+   *
+   * `MDXRemote` from `next-mdx-remote/rsc` compiles the source itself and
+   * expects a string. Handing it the object returned by the client-side
+   * `serialize()` renders nothing at all — which is what used to happen here.
+   */
+  source: string;
 }
 
-const postsDirectory = path.join(process.cwd(), "content/blog");
+const postsDirectory = path.join(process.cwd(), 'content/blog');
 
-const WORDS_PER_MINUTE = 220;
-
-function readPost(slug: string) {
-  const fileContents = fs.readFileSync(path.join(postsDirectory, `${slug}.mdx`), "utf8");
-  const { data, content } = matter(fileContents);
-  const words = content.trim().split(/\s+/).length;
-
-  const frontmatter: PostFrontmatter = {
-    title: data.title,
-    date: new Date(data.date).toISOString(),
-    excerpt: data.excerpt,
-    category: data.category,
-    tags: data.tags,
-    readingMinutes: Math.max(1, Math.round(words / WORDS_PER_MINUTE)),
-  };
-
-  return { slug, frontmatter, content };
-}
-
-export function getAllPostSlugs(): string[] {
+// Get all filenames/slugs from the blog directory
+export function getAllPostSlugs() {
   try {
-    return fs
-      .readdirSync(postsDirectory)
-      .filter((name) => name.endsWith(".mdx"))
-      .map((name) => name.replace(/\.mdx$/, ""));
-  } catch {
-    return [];
+    const fileNames = fs.readdirSync(postsDirectory);
+    return fileNames
+      .filter((fileName) => fileName.endsWith('.mdx'))
+      .map((fileName) => fileName.replace(/\.mdx$/, ''));
+  } catch (error) {
+    console.error("Error reading blog directory:", error);
+    return []; // Return empty array if directory doesn't exist or error occurs
   }
 }
 
-export function getSortedPostsData(): Post[] {
-  return getAllPostSlugs()
-    .map((slug) => {
-      const { frontmatter } = readPost(slug);
-      return { slug, frontmatter };
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.frontmatter.date).getTime() - new Date(a.frontmatter.date).getTime(),
-    );
+// Get sorted posts data (slug + frontmatter)
+export function getSortedPostsData(): Post<PostFrontmatter>[] {
+  const slugs = getAllPostSlugs();
+  const allPostsData = slugs.map((slug) => {
+    const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const { data, content } = matter(fileContents);
+
+    // Ensure date is treated correctly
+    const frontmatter = { ...data, date: data.date.toISOString() } as PostFrontmatter;
+
+    return {
+      slug,
+      frontmatter,
+      readingMinutes: estimateReadingMinutes(content),
+    };
+  });
+
+  // Sort posts by date (newest first)
+  return allPostsData.sort((a, b) => {
+    const dateA = new Date(a.frontmatter.date);
+    const dateB = new Date(b.frontmatter.date);
+    return dateB.getTime() - dateA.getTime();
+  });
 }
 
-export function getPostData(slug: string): PostWithSource | null {
+// Get individual post data and serialize MDX
+export async function getPostData(slug: string): Promise<PostWithSource<PostFrontmatter> | null> {
+  const fullPath = path.join(postsDirectory, `${slug}.mdx`);
   try {
-    return readPost(slug);
-  } catch {
-    return null;
-  }
-}
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const { data, content } = matter(fileContents);
 
-export function getAdjacentPosts(slug: string): { previous: Post | null; next: Post | null } {
-  const posts = getSortedPostsData();
-  const index = posts.findIndex((post) => post.slug === slug);
-  if (index === -1) return { previous: null, next: null };
-  return {
-    previous: posts[index + 1] ?? null,
-    next: posts[index - 1] ?? null,
-  };
-}
+    // Convert date to string for serialization
+    const frontmatter = { ...data, date: data.date.toISOString() } as PostFrontmatter;
+
+    return {
+      slug,
+      frontmatter,
+      source: content,
+      readingMinutes: estimateReadingMinutes(content),
+    };
+  } catch (error) {
+    console.error(`Error reading post ${slug}:`, error);
+    return null; // Return null if file not found or error occurs
+  }
+} 

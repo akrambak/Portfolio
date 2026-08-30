@@ -1,71 +1,114 @@
 import type { Metadata } from "next";
-import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { FaLinkedin, FaGithub } from "react-icons/fa";
+import Link from "next/link";
 import ContactForm from "@/components/ContactForm";
-import { CalendarIcon } from "@/components/icons";
-import { Container, DataSheet, PageHeader, SectionHeader } from "@/components/ui";
-import { links, site } from "@/config/site";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Reveal } from "@/components/motion/Reveal";
+import { ArrowRight, CTALink } from "@/components/ui/CTALink";
+import { activeSocials, configured, site } from "@/config/site";
+
+const ICONS = { github: FaGithub, linkedin: FaLinkedin } as const;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("contact");
-  return { title: t("eyebrow"), description: t("lead") };
+  const t = await getTranslations();
+  return {
+    title: t("contactPage.title"),
+    description: t("contactPage.lede"),
+  };
 }
 
-export default function ContactPage() {
-  const t = useTranslations("contact");
+export default async function ContactPage() {
+  const t = await getTranslations();
+  const socials = activeSocials();
+  const hasDirect = configured(site.email) || configured(site.location) || socials.length > 0;
+  // Until site.ts is filled in there is no sidebar, so the form takes the
+  // full column instead of sitting next to an empty half.
+  const hasSidebar = hasDirect || configured(site.links.calendly);
 
   return (
-    <Container>
-      <PageHeader eyebrow={t("eyebrow")} title={t("title")} lead={t("lead")} />
+    <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      <PageHeader
+        eyebrow={t("contactPage.eyebrow")}
+        title={t("contactPage.title")}
+        lede={t("contactPage.lede")}
+      />
 
-      <div className="grid gap-14 pb-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-20">
-        <section>
-          <SectionHeader label={t("formLabel")} />
-          <div className="mt-8">
-            <ContactForm />
-          </div>
-        </section>
+      <div
+        className={
+          "grid grid-cols-1 gap-14 lg:gap-20 " +
+          (hasSidebar ? "lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]" : "max-w-2xl")
+        }
+      >
+        <Reveal as="section">
+          <h2 className="mb-7 font-mono text-sm uppercase tracking-[0.16em] text-ink-faint">
+            {t("contactPage.formTitle")}
+          </h2>
+          <ContactForm />
+        </Reveal>
 
-        <aside className="lg:pt-1">
-          <SectionHeader label={t("directLabel")} />
-          <div className="mt-8">
-            <DataSheet
-              rows={[
-                {
-                  label: t("emailLabel"),
-                  value: (
+        {hasSidebar && (
+        <div className="space-y-12">
+          {hasDirect && (
+            <Reveal as="section">
+              <h2 className="mb-5 font-mono text-sm uppercase tracking-[0.16em] text-ink-faint">
+                {t("contactPage.infoTitle")}
+              </h2>
+              <ul className="space-y-3">
+                {configured(site.email) && (
+                  <li>
                     <a
                       href={`mailto:${site.email}`}
-                      className="text-ink underline decoration-signal decoration-1 underline-offset-4 transition-colors duration-200 hover:text-signal"
+                      className="font-mono text-base text-accent transition-opacity duration-200 hover:opacity-75"
                     >
                       {site.email}
                     </a>
-                  ),
-                },
-                { label: t("locationLabel"), value: site.locationLabel },
-                { label: t("responseLabel"), value: t("responseValue") },
-                { label: t("languagesLabel"), value: t("languagesValue") },
-              ]}
-            />
-          </div>
-
-          {links.calendly && (
-            <div className="mt-10 rounded-[3px] border border-rule p-6">
-              <h2 className="text-lg font-semibold tracking-tight">{t("callLabel")}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-graphite">{t("callBody")}</p>
-              <a
-                href={links.calendly}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-[3px] border border-rule-strong px-4 font-mono text-eyebrow font-medium uppercase text-ink transition-colors duration-200 hover:border-signal hover:text-signal"
-              >
-                <CalendarIcon className="h-4 w-4" />
-                {t("callAction")}
-              </a>
-            </div>
+                  </li>
+                )}
+                {configured(site.location) && (
+                  <li className="text-sm text-ink-muted">{site.location}</li>
+                )}
+                {socials.length > 0 && (
+                  <li className="flex flex-wrap gap-2 pt-2">
+                    {socials.map(({ key, href, label }) => {
+                      const Icon = ICONS[key as keyof typeof ICONS];
+                      if (!Icon) return null;
+                      return (
+                        <Link
+                          key={key}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex h-11 items-center gap-2.5 rounded-[2px] border border-hairline px-4 font-mono text-xs text-ink-muted transition-colors duration-200 hover:border-hairline-strong hover:text-ink"
+                        >
+                          <Icon className="h-4 w-4" aria-hidden="true" />
+                          {label}
+                        </Link>
+                      );
+                    })}
+                  </li>
+                )}
+              </ul>
+            </Reveal>
           )}
-        </aside>
+
+          {configured(site.links.calendly) && (
+            <Reveal as="section">
+              <h2 className="mb-3 font-mono text-sm uppercase tracking-[0.16em] text-ink-faint">
+                {t("contactPage.bookTitle")}
+              </h2>
+              <p className="mb-6 max-w-[46ch] text-sm leading-relaxed text-ink-muted">
+                {t("contactPage.bookBody")}
+              </p>
+              <CTALink href={site.links.calendly} external>
+                {t("contactPage.bookCta")}
+                <ArrowRight />
+              </CTALink>
+            </Reveal>
+          )}
+        </div>
+        )}
       </div>
-    </Container>
+    </div>
   );
 }

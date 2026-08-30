@@ -1,6 +1,6 @@
 # Progress
 
-*   **What works:** Four-route site — Home, Work, Blog (MDX index + `[slug]`), About, Contact — on a token-based design system ("instrument panel": paper/ink/graphite with a single rationed `signal` accent). Full EN/FR SSR coverage with key parity enforced. Light/dark via tokens, CSS-only motion, GTM, sitemap, robots, `Person` and `BlogPosting` JSON-LD, generated OG image, MDX with shiki syntax highlighting, server-side category filters, honeypot-protected contact form, 404 page.
-*   **What's left to build:** Real client case studies (two `draft` entries scaffolded in `src/content/work.ts`), LinkedIn/GitHub/Calendly URLs in `src/config/site.ts`, email delivery for the contact form, and confirmation that `site.url` matches the deployed domain.
-*   **Current status:** Redesigned and rebuilt. `next build` and `next lint` both clean; production served on port 3100.
-*   **Known issues:** Contact API only logs submissions (no email sent). Social/Calendly links are unset, so those UI blocks are hidden by design until filled. `site.url` is currently assumed to be `https://bak-dev.com`.
+*   **What works:** App Router site with Home, About, Modules, Themes, Portfolio, Blog (MDX index + `[slug]`), and Contact pages. Light/dark theming, Framer Motion route transitions, `CursorGlow`, GTM analytics, EN/FR language switching, and the contact form UI posting to `/api/contact` (with field validation).
+*   **What's left to build:** Full EN/FR coverage across all pages, real content/images (profile, projects, themes), email delivery for the contact form, and populated social links.
+*   **Current status:** Actively developed. Builds and runs; production served on port 3100.
+*   **Known issues:** Contact API only logs submissions (no email sent). Footer social links are placeholders (`#`). Home uses a placeholder profile image. The `next.config.ts` `i18n` config is inert under the App Router.

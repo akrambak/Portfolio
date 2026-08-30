@@ -1,22 +1,14 @@
 import Link from "next/link";
+import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { useTranslations } from "next-intl";
-import { GitHubIcon, LinkedInIcon, XIcon } from "./icons";
-import { Container, Eyebrow } from "./ui";
-import { site, activeLinks, type LinkKey } from "@/config/site";
+import { activeSocials, configured, site } from "@/config/site";
 
-const socialIcons: Partial<Record<LinkKey, typeof GitHubIcon>> = {
-  linkedin: LinkedInIcon,
-  github: GitHubIcon,
-  x: XIcon,
-};
+const ICONS = {
+  github: FaGithub,
+  linkedin: FaLinkedin,
+} as const;
 
-const socialLabels: Partial<Record<LinkKey, string>> = {
-  linkedin: "LinkedIn",
-  github: "GitHub",
-  x: "X",
-};
-
-const routes = [
+const FOOTER_LINKS = [
   { href: "/work", key: "work" },
   { href: "/blog", key: "writing" },
   { href: "/about", key: "about" },
@@ -25,67 +17,70 @@ const routes = [
 
 export default function Footer() {
   const t = useTranslations();
+  const socials = activeSocials();
 
   return (
-    <footer className="border-t border-rule">
-      <Container>
-        <div className="grid gap-10 py-12 sm:grid-cols-2">
-          <div>
-            <p className="font-display text-base font-semibold tracking-tight">
-              {site.name}
+    <footer className="mt-24 border-t border-hairline">
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+        <div className="flex flex-col gap-10 sm:flex-row sm:items-start sm:justify-between">
+          <div className="max-w-sm">
+            <p className="font-mono text-sm font-semibold text-ink">
+              <span className="text-accent">/</span> {site.name}
             </p>
-            <p className="mt-1 text-sm text-graphite">{t("meta.role")}</p>
-            <a
-              href={`mailto:${site.email}`}
-              className="mt-4 inline-block font-mono text-[0.8125rem] text-ink underline decoration-signal decoration-1 underline-offset-4 transition-colors duration-200 hover:text-signal"
-            >
-              {site.email}
-            </a>
+            <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+              {t("footer.blurb")}
+            </p>
+            {configured(site.email) && (
+              <a
+                href={`mailto:${site.email}`}
+                className="mt-4 inline-block font-mono text-sm text-accent transition-opacity duration-200 hover:opacity-75"
+              >
+                {site.email}
+              </a>
+            )}
           </div>
 
-          <nav aria-label={t("nav.secondary")} className="sm:justify-self-end">
-            <ul className="space-y-2.5">
-              {routes.map((route) => (
-                <li key={route.href}>
-                  <Link
-                    href={route.href}
-                    className="font-mono text-eyebrow font-medium uppercase text-graphite transition-colors duration-200 hover:text-signal"
-                  >
-                    {t(`nav.${route.key}`)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          <nav aria-label="Footer" className="flex flex-col gap-2.5">
+            {FOOTER_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex min-h-11 items-center font-mono text-sm text-ink-muted transition-colors duration-200 hover:text-ink"
+              >
+                {t(`navigation.${link.key}`)}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-rule py-6 sm:flex-row sm:items-center sm:justify-between">
-          <Eyebrow>
-            © {new Date().getFullYear()} {site.name} · {site.locationLabel}
-          </Eyebrow>
-          {activeLinks.length > 0 && (
+        <div className="mt-12 flex flex-col-reverse items-center gap-6 border-t border-hairline pt-6 sm:flex-row sm:justify-between">
+          <p className="font-mono text-xs text-ink-faint">
+            © {new Date().getFullYear()} {site.name}. {t("footer.copyright")}
+          </p>
+
+          {socials.length > 0 && (
             <ul className="flex items-center gap-1">
-              {activeLinks.map(([key, href]) => {
-                const Icon = socialIcons[key];
+              {socials.map(({ key, href, label }) => {
+                const Icon = ICONS[key as keyof typeof ICONS];
                 if (!Icon) return null;
                 return (
                   <li key={key}>
-                    <a
+                    <Link
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex h-11 w-11 items-center justify-center text-faint transition-colors duration-200 hover:text-ink"
+                      className="flex h-11 w-11 items-center justify-center rounded-[2px] text-ink-faint transition-colors duration-200 hover:bg-raised hover:text-ink"
                     >
-                      <span className="sr-only">{socialLabels[key]}</span>
-                      <Icon className="h-[1.05rem] w-[1.05rem]" />
-                    </a>
+                      <span className="sr-only">{label}</span>
+                      <Icon className="h-[18px] w-[18px]" />
+                    </Link>
                   </li>
                 );
               })}
             </ul>
           )}
         </div>
-      </Container>
+      </div>
     </footer>
   );
 }
