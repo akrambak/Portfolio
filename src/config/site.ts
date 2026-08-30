@@ -24,10 +24,11 @@ export const site: SiteConfig = {
   name: "Akram Bakhouche",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://bak-dev.com",
 
-  // TODO: replace with the real values.
-  email: null,
-  location: null,
+  email: "me@bak-dev.com",
+  location: "Remote · EU",
   availableForWork: true,
+
+  // TODO: fill these in. Each one is hidden until it has a real URL.
   links: {
     github: null,
     linkedin: null,
