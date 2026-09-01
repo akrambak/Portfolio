@@ -3,6 +3,11 @@
 
 @plugin "@tailwindcss/typography";
 
+/* next-themes drives the theme with a class on <html>. Tailwind v4 resolves
+   `dark:` against prefers-color-scheme by default, so the variant has to be
+   redeclared or the toggle and the styles drift apart. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ------------------------------------------------------------------ tokens */
 
 /*
@@ -42,6 +47,38 @@
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/*
+ * Night mode as an actual cyanotype.
+ *
+ * A real blueprint is white line on Prussian blue — so the dark theme is not
+ * this design inverted into greys, it is the print the light theme describes.
+ * Light = pencil on drafting paper. Dark = the blueprint itself.
+ *
+ * Only the token values change. Components address tokens rather than literal
+ * colours, so nothing else in the codebase needs a `dark:` variant.
+ */
+.dark {
+  color-scheme: dark;
+
+  --canvas: #0b1b2b;          /* prussian ground */
+  --surface: #10233a;         /* plates sit slightly above the ground */
+  --raised: #16304c;
+  --hairline: #1e3e60;
+  --hairline-strong: #2c5583;
+
+  --ink: #e8eef5;             /* white line */
+  --ink-muted: #a8bcd0;
+  --ink-faint: #7d95ac;       /* meta only, never body */
+
+  --accent: #7fb3e8;          /* safe as text on the ground */
+  --accent-fill: #2d6ba8;     /* filled, white foreground */
+  --accent-on: #ffffff;
+  --accent-2: #f0845c;        /* redline, lifted for a dark ground */
+
+  --grid-major: rgb(200 225 255 / 0.1);
+  --grid-minor: rgb(200 225 255 / 0.055);
+}
+
 @theme inline {
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
@@ -78,11 +115,6 @@
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
     background-color: var(--canvas);
-    background-image:
-      repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px 64px),
-      repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px 64px),
-      repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px 8px),
-      repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px 8px);
   }
 
   body {
@@ -113,6 +145,110 @@
 }
 
 @utility animate-tick { animation: tick-blink 2.8s var(--ease-standard) infinite; }
+
+/* ------------------------------------------------- scroll-driven motion */
+
+/*
+ * Every rule below is progressive enhancement, and the base styles are the
+ * FINISHED state on purpose. A browser without scroll timelines, with JS off,
+ * or in reduced motion shows a correct static page - the opposite of a JS
+ * reveal that starts at opacity 0 and needs a frame loop to become visible.
+ *
+ * The JS fallback tests the same condition via CSS.supports(), so the two
+ * paths are mutually exclusive and can never both drive the same element.
+ */
+
+/* The drafting grid, on its own fixed layer so it can be moved. */
+.grid-backdrop {
+  position: fixed;
+  inset: -15vh 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px 8px);
+}
+
+@keyframes grid-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(0, -9vh, 0); }
+}
+
+/* Section rules draw themselves as they are scrolled into view. */
+.rule-line { transform: scaleX(1); transform-origin: left center; }
+
+@keyframes rule-draw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Reading progress. Base is empty and fills with scroll. */
+.progress-bar { transform: scaleX(0); transform-origin: left center; }
+
+@keyframes progress-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* A token travelling an edge of the pipeline, advanced by scroll rather than
+   by a timer. Base is parked past the end, so no token shows when static. */
+.pipe-token { stroke-dashoffset: -1; }
+
+@keyframes token-flow {
+  from { stroke-dashoffset: 0.07; }
+  to   { stroke-dashoffset: -1; }
+}
+
+@supports (animation-timeline: view()) {
+  .grid-backdrop {
+    animation-name: grid-drift;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
+
+  .rule-line {
+    animation-name: rule-draw;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 15% cover 30%;
+  }
+
+  .progress-bar {
+    animation-name: progress-grow;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: scroll(root block);
+  }
+
+  .pipe-token {
+    animation-name: token-flow;
+    animation-duration: auto;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+  }
+}
+
+/*
+ * Reduced motion: drop the decorative scroll animations back to their static
+ * base. Reading progress is deliberately left running - it is information,
+ * not decoration, and a frozen progress bar would be a regression.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .grid-backdrop,
+  .rule-line,
+  .pipe-token {
+    animation: none !important;
+  }
+}
 
 /* -------------------------------------------------------------- components */
 
@@ -208,6 +344,56 @@
   font-style: normal;
   border-left-width: 2px;
 }
+
+/*
+ * The Prism theme imported at the top is a light one, which would glare on the
+ * cyanotype ground. Rather than import a second stylesheet that cannot be
+ * scoped, re-colour the token set under .dark — it is a short, fixed list.
+ */
+.dark .prose {
+  --tw-prose-pre-bg: #0d2036;
+  --tw-prose-pre-code: #c3d3e3;
+}
+
+.dark pre[class*="language-"],
+.dark code[class*="language-"] {
+  background: #0d2036;
+  color: #c3d3e3;
+  text-shadow: none;
+}
+
+.dark .token.comment,
+.dark .token.prolog,
+.dark .token.doctype,
+.dark .token.cdata { color: #6b8299; }
+
+.dark .token.punctuation,
+.dark .token.operator,
+.dark .token.entity,
+.dark .token.url { color: #9db3c7; }
+
+.dark .token.property,
+.dark .token.tag,
+.dark .token.constant,
+.dark .token.symbol,
+.dark .token.deleted { color: #f0845c; }
+
+.dark .token.boolean,
+.dark .token.number { color: #d7a5ff; }
+
+.dark .token.selector,
+.dark .token.attr-name,
+.dark .token.string,
+.dark .token.char,
+.dark .token.builtin,
+.dark .token.inserted { color: #8ed6a0; }
+
+.dark .token.atrule,
+.dark .token.attr-value,
+.dark .token.keyword { color: #7fb3e8; }
+
+.dark .token.function,
+.dark .token.class-name { color: #ffd479; }
 
 /* --------------------------------------------------------------- scrollbar */
 

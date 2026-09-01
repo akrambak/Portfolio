@@ -34,9 +34,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 | Script | Description |
 | --- | --- |
-| `npm run dev` | Start the dev server with Turbopack (port 3000) |
+| `npm run dev` | Start the dev server on port 3000 (webpack) |
+| `npm run dev:turbo` | Same, with Turbopack — currently broken by a `next/font/google` bug in 15.3.1 |
 | `npm run build` | Production build |
-| `npm run start` | Serve the production build on **port 3100** |
+| `npm run start` | Serve the production build on **port 3000** (honours `PORT`) |
+| `npm run start:3100` | Serve the production build on port 3100 |
+| `npm run serve` | Build, then serve — avoids serving a stale dev `.next` |
 | `npm run lint` | Run ESLint (`eslint-config-next`) |
 
 ## Project Structure
@@ -146,7 +149,9 @@ Google Tag Manager (container `GTM-MD68KMQC`) is injected in `src/app/layout.tsx
 
 ## Deployment
 
-Optimized for [Vercel](https://vercel.com/new). `npm run build` produces a standard Next.js build. If self-hosting, note `npm run start` binds to **port 3100**.
+Optimized for [Vercel](https://vercel.com/new). `npm run build` produces a standard Next.js build.
+
+`npm run start` serves on **3000** by default and honours the `PORT` environment variable. `npm run start:3100` is kept for hosts that proxy to 3100. `npm run serve` builds and then serves in one step — use it rather than a bare `next start`, which prints its URL and a green check *before* discovering that `.next` holds a dev build, so the port simply never answers.
 
 ## memory-bank/
 

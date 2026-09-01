@@ -12,6 +12,7 @@ import {
 } from "framer-motion";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { dur, ease } from "@/lib/motion";
 
 const NAV_LINKS = [
@@ -25,7 +26,7 @@ export default function Navbar() {
   const t = useTranslations();
   const pathname = usePathname();
   const reduced = useReducedMotion();
-  const [condensed, setCondensed] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -35,8 +36,8 @@ export default function Navbar() {
 
   // Flips a boolean at a threshold rather than setting state per frame.
   useMotionValueEvent(scrollY, "change", (value) => {
-    const next = value > 24;
-    setCondensed((current) => (current === next ? current : next));
+    const next = value > 8;
+    setScrolled((current) => (current === next ? current : next));
   });
 
   const isActive = useCallback(
@@ -73,44 +74,46 @@ export default function Navbar() {
   return (
     <>
       {/*
-        Fixed, so the height transition is contained to the header's own
-        containing block and never reflows the document beneath it.
+        Apple-style chrome: a thin bar of constant height that stays frosted at
+        all times, with blur + saturation doing the work rather than opacity.
+        Saturation is the half people forget — it is what makes colour bloom
+        through the glass instead of going milky.
+
+        Height never animates. Only background, border and shadow respond to
+        scroll, so this is paint-only and cannot reflow the page. The blurred
+        area is 48px tall, which is why this is cheap where a full-viewport
+        blur was not.
       */}
       <header
         className={
-          "fixed inset-x-0 top-0 z-50 transition-[height,background-color,border-color] duration-300 ease-out " +
-          (condensed
-            ? "h-[60px] border-b border-hairline bg-canvas/90 backdrop-blur-sm"
-            : "h-[76px] border-b border-transparent bg-transparent")
+          "fixed inset-x-0 top-0 z-50 h-12 border-b transition-[background-color,border-color] duration-300 ease-out " +
+          "bg-canvas/95 supports-[backdrop-filter]:bg-canvas/65 " +
+          "backdrop-blur-xl backdrop-saturate-[1.8] " +
+          // Hairline only. A hardcoded drop shadow would be invisible on the
+          // cyanotype ground, and the border already does the separating.
+          (scrolled ? "border-hairline" : "border-transparent")
         }
       >
         <nav
           aria-label="Primary"
-          className="mx-auto flex h-full max-w-6xl items-center justify-between gap-6 px-5 sm:px-8"
+          className="mx-auto grid h-full max-w-6xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 sm:px-8"
         >
-          <Link href="/" className="group flex shrink-0 items-center gap-2.5 py-3">
+          <Link href="/" className="group flex shrink-0 items-center gap-2">
             {/* Drafted monogram — the mark, generated rather than drawn. */}
             <span
               aria-hidden="true"
-              className="flex h-7 w-7 items-center justify-center border border-accent font-mono text-[0.72rem] leading-none text-accent transition-colors duration-200 group-hover:border-accent-2 group-hover:text-accent-2"
+              className="flex h-[22px] w-[22px] items-center justify-center border border-accent font-mono text-[0.62rem] leading-none text-accent transition-colors duration-200 group-hover:border-accent-2 group-hover:text-accent-2"
             >
               A
             </span>
-            <span className="font-mono text-sm tracking-tight text-ink">
+            <span className="text-[0.8rem] font-medium tracking-tight text-ink">
               akram
-              <span
-                className={
-                  "text-ink-faint transition-opacity duration-300 " +
-                  (condensed ? "opacity-0" : "opacity-100")
-                }
-              >
-                {" "}
-                bakhouche
-              </span>
+              <span className="hidden text-ink-faint sm:inline"> bakhouche</span>
             </span>
           </Link>
 
-          <div className="hidden items-center gap-1 md:flex">
+          {/* Centre column: Apple puts the links dead centre, not beside the mark. */}
+          <div className="hidden items-center justify-center gap-8 md:flex">
             {NAV_LINKS.map((link) => {
               const active = isActive(link.href);
               return (
@@ -119,7 +122,7 @@ export default function Navbar() {
                   href={link.href}
                   aria-current={active ? "page" : undefined}
                   className={
-                    "relative px-3.5 py-2 font-mono text-[0.8rem] tracking-tight transition-colors duration-200 " +
+                    "relative py-2 text-[0.78rem] tracking-tight transition-colors duration-200 " +
                     (active ? "text-ink" : "text-ink-muted hover:text-ink")
                   }
                 >
@@ -128,7 +131,7 @@ export default function Navbar() {
                     <motion.span
                       layoutId="nav-active"
                       aria-hidden="true"
-                      className="absolute inset-x-2.5 -bottom-0.5 h-[2px] bg-accent-2"
+                      className="absolute inset-x-0 -bottom-px h-[2px] bg-accent-2"
                       transition={
                         reduced
                           ? { duration: 0 }
@@ -141,10 +144,11 @@ export default function Navbar() {
             })}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <div className="hidden sm:block">
               <LanguageSwitcher />
             </div>
+            <ThemeToggle />
             <button
               ref={toggleRef}
               onClick={() => setMenuOpen((open) => !open)}
@@ -152,11 +156,11 @@ export default function Navbar() {
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? t("navigation.closeMenu") : t("navigation.openMenu")}
-              className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-[2px] border border-hairline text-ink transition-colors duration-200 hover:border-accent hover:text-accent md:hidden"
+              className="-mr-2 flex h-11 w-11 cursor-pointer items-center justify-center rounded-[2px] text-ink transition-colors duration-200 hover:text-accent md:hidden"
             >
               <svg
                 viewBox="0 0 24 24"
-                className="h-5 w-5"
+                className="h-[18px] w-[18px]"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.5"
@@ -166,7 +170,7 @@ export default function Navbar() {
                 {menuOpen ? (
                   <path d="M6 6l12 12M18 6L6 18" />
                 ) : (
-                  <path d="M4 8h16M4 16h16" />
+                  <path d="M4 9h16M4 15h16" />
                 )}
               </svg>
             </button>
@@ -178,7 +182,7 @@ export default function Navbar() {
         {menuOpen && (
           <motion.div
             id="mobile-menu"
-            className="fixed inset-0 z-40 bg-canvas px-5 pb-8 pt-[92px] md:hidden"
+            className="fixed inset-0 z-40 bg-canvas/95 px-5 pb-8 pt-[72px] backdrop-blur-xl backdrop-saturate-[1.8] md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -221,7 +225,7 @@ export default function Navbar() {
       </AnimatePresence>
 
       {/* Spacer for the fixed header. */}
-      <div aria-hidden="true" className="h-[76px]" />
+      <div aria-hidden="true" className="h-12" />
     </>
   );
 }

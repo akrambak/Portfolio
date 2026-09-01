@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ease } from "@/lib/motion";
+import { useNeedsMotionFallback } from "@/lib/useScrollTimelines";
 
 /**
  * Annotated plan of a real agent pipeline: scrape -> score (cached) -> eval
@@ -36,9 +37,22 @@ const EDGES = [
   "M90 258 V282 H255 V306",
 ] as const;
 
+/*
+ * Overlapping slices of the diagram's own view timeline, so scrolling the hero
+ * hands the token from one edge to the next. Scroll position becomes the thing
+ * pushing data through the pipeline, which is the point: the motion describes
+ * the work rather than decorating it.
+ */
+const TOKEN_RANGES = [
+  "cover 0% cover 40%",
+  "cover 25% cover 65%",
+  "cover 50% cover 92%",
+] as const;
+
 export function PipelineSchematic({ className = "" }: { className?: string }) {
   const t = useTranslations();
   const reduced = useReducedMotion();
+  const fallback = useNeedsMotionFallback();
   const [active, setActive] = useState<string | null>(null);
 
   return (
@@ -67,28 +81,43 @@ export function PipelineSchematic({ className = "" }: { className?: string }) {
           />
         ))}
 
-        {/* one token travelling the whole route, edge by edge */}
+        {/* One token travelling the whole route, edge by edge. Scroll-driven
+            where CSS timelines exist; a slow loop where they do not. */}
         {!reduced &&
-          EDGES.map((d, index) => (
-            <motion.path
-              key={`pulse-${d}`}
-              d={d}
-              stroke="var(--accent-2)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              pathLength={1}
-              strokeDasharray="0.07 1"
-              initial={{ strokeDashoffset: 0.07 }}
-              animate={{ strokeDashoffset: -1 }}
-              transition={{
-                duration: 1.5,
-                ease: "linear",
-                repeat: Infinity,
-                repeatDelay: 4.5,
-                delay: 2 + index * 1.5,
-              }}
-            />
-          ))}
+          EDGES.map((d, index) =>
+            fallback ? (
+              <motion.path
+                key={`pulse-${d}`}
+                d={d}
+                stroke="var(--accent-2)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                pathLength={1}
+                strokeDasharray="0.07 1"
+                initial={{ strokeDashoffset: 0.07 }}
+                animate={{ strokeDashoffset: -1 }}
+                transition={{
+                  duration: 1.5,
+                  ease: "linear",
+                  repeat: Infinity,
+                  repeatDelay: 4.5,
+                  delay: 2 + index * 1.5,
+                }}
+              />
+            ) : (
+              <path
+                key={`pulse-${d}`}
+                className="pipe-token"
+                style={{ animationRange: TOKEN_RANGES[index] } as React.CSSProperties}
+                d={d}
+                stroke="var(--accent-2)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                pathLength={1}
+                strokeDasharray="0.07 1"
+              />
+            ),
+          )}
 
         {/* leader lines to the annotations */}
         {LEADERS.map((d, index) => (
