@@ -28,18 +28,24 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3210](http://localhost:3210).
+
+> Ports 3000 and 3100 are already taken on the production VPS — 3000 by an unrelated
+> service, 3100 by this site's own PM2 process. Dev and preview therefore default to
+> 3210/3211. Every script honours `PORT` if you need something else.
 
 ### Scripts
 
 | Script | Description |
 | --- | --- |
-| `npm run dev` | Start the dev server on port 3000 (webpack) |
+| `npm run dev` | Dev server on port 3210 (webpack) |
 | `npm run dev:turbo` | Same, with Turbopack — currently broken by a `next/font/google` bug in 15.3.1 |
 | `npm run build` | Production build |
-| `npm run start` | Serve the production build on **port 3000** (honours `PORT`) |
-| `npm run start:3100` | Serve the production build on port 3100 |
-| `npm run serve` | Build, then serve — avoids serving a stale dev `.next` |
+| `npm run start` | Serve the production build on **port 3100** (honours `PORT`) |
+| `npm run start:3100` | Explicit port-3100 alias, kept for existing tooling |
+| `npm run preview` | Build, then serve on 3211 — a safe local check that never collides with the live site |
+| `npm run deploy` | **Production deploy:** build as `bak-dev`, restart PM2, health-check |
+| `npm run pm2:status` / `pm2:logs` | Inspect the live process |
 | `npm run lint` | Run ESLint (`eslint-config-next`) |
 
 ## Project Structure
@@ -151,7 +157,30 @@ Google Tag Manager (container `GTM-MD68KMQC`) is injected in `src/app/layout.tsx
 
 Optimized for [Vercel](https://vercel.com/new). `npm run build` produces a standard Next.js build.
 
-`npm run start` serves on **3000** by default and honours the `PORT` environment variable. `npm run start:3100` is kept for hosts that proxy to 3100. `npm run serve` builds and then serves in one step — use it rather than a bare `next start`, which prints its URL and a green check *before* discovering that `.next` holds a dev build, so the port simply never answers.
+The live site runs on this VPS under **PM2** as the `bak-dev` user, with Apache
+reverse-proxying `bak-dev.com` to `127.0.0.1:3100` (`/etc/apache2/sites-available/bak-dev.com.conf`).
+
+To ship a change:
+
+```bash
+npm run deploy
+```
+
+That builds and restarts in the right order, then health-checks :3100.
+
+Two failure modes it exists to prevent — both have bitten this project:
+
+- **Never build as root.** `npm ci` or `next build` as root leaves root-owned files in
+  `.next/` and `node_modules/`. The server runs as `bak-dev`, so it can read them but
+  cannot write `.next/cache`, which silently breaks the ISR and image-optimisation
+  caches. `deploy.sh` re-execs as `bak-dev` for exactly this reason.
+- **Never `rm -rf .next` while the server is running,** and never hand-run `next start`
+  in production. PM2 already owns :3100, so a manual start just reports `EADDRINUSE`.
+  Deleting `.next` under a live process is worse: it keeps serving HTML that references
+  chunk hashes that no longer exist on disk, and every asset then 400s as `text/html` —
+  which the browser rejects under `X-Content-Type-Options: nosniff`. Use `npm run deploy`.
+
+Use `npm run preview` (port 3211) to check a build locally without touching the live site.
 
 ## memory-bank/
 
