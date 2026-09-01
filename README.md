@@ -45,6 +45,7 @@ Open [http://localhost:3210](http://localhost:3210).
 | `npm run start:3100` | Explicit port-3100 alias, kept for existing tooling |
 | `npm run preview` | Build, then serve on 3211 — a safe local check that never collides with the live site |
 | `npm run deploy` | **Production deploy:** build as `bak-dev`, restart PM2, health-check |
+| `npm run pm2:setup` | Register the PM2 app from `ecosystem.config.js` and persist it for boot |
 | `npm run pm2:status` / `pm2:logs` | Inspect the live process |
 | `npm run lint` | Run ESLint (`eslint-config-next`) |
 
@@ -159,6 +160,12 @@ Optimized for [Vercel](https://vercel.com/new). `npm run build` produces a stand
 
 The live site runs on this VPS under **PM2** as the `bak-dev` user, with Apache
 reverse-proxying `bak-dev.com` to `127.0.0.1:3100` (`/etc/apache2/sites-available/bak-dev.com.conf`).
+
+The process is defined by **`ecosystem.config.js`** in this repo, so the app definition is
+version-controlled rather than living only in PM2's dump file. `npm run pm2:setup` applies it
+and runs `pm2 save`; the `pm2-bak-dev` systemd unit restores the saved list on boot.
+`pm2-logrotate` is installed (10MB per file, 7 retained, compressed, daily) so logs cannot
+grow unbounded.
 
 To ship a change:
 
