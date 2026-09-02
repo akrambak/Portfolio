@@ -221,7 +221,53 @@ anything that wins a DNS or BGP race collect the deploy key.
 
 **`NEXT_PUBLIC_*` values are inlined into the JavaScript bundle by `next build`.** `NEXT_PUBLIC_SITE_URL` (read in `src/config/site.ts`) is therefore fixed at build time — putting it in `shared/.env.production` on the VPS has no effect whatsoever. Change it in the GitHub variable and rebuild.
 
-Server-only secrets — an email provider key for `src/app/api/contact/route.ts`, say — go in `shared/.env.production` on the VPS. The standalone server loads that file from its cwd at startup, and it is symlinked into each release, so it survives deploys and rollbacks.
+Server-only values go in `shared/.env.production` on the VPS (mode 600). The standalone server loads that file from its cwd at startup, and `remote-activate.sh` symlinks it into each release, so it survives deploys and rollbacks. `.env.production.example` in the repo lists every variable the app reads.
+
+## Contact form mail
+
+`POST /api/contact` (`src/app/api/contact/route.ts` → `src/lib/mail.ts`) hands the submission to **the Postfix already running on this box**, over SMTP on `127.0.0.1:25`. Because `bak-dev.com`'s MX *is* this machine, that is one loopback hop followed by local delivery into `me@bak-dev.com` — it never crosses the internet, needs no credentials, and is not subject to anyone else's spam scoring.
+
+The envelope matters:
+
+- **`From` is `noreply@bak-dev.com`**, not the visitor. An envelope sender the domain does not own fails SPF/DMARC at the receiving end and Postfix may refuse to relay it at all.
+- **`Reply-To` is the visitor**, so replying from the mail client answers them.
+
+Defaults are chosen so that an **empty `.env.production` already works on this box**. Override only what you need:
+
+```ini
+CONTACT_TO=me@bak-dev.com
+CONTACT_FROM=Portfolio <noreply@bak-dev.com>
+SMTP_HOST=127.0.0.1
+SMTP_PORT=25
+```
+
+For an authenticated relay instead of the local MTA, set `SMTP_HOST=mail.bak-dev.com`, `SMTP_PORT=587`, and `SMTP_USER` / `SMTP_PASS`. No code change is involved.
+
+> `noreply@bak-dev.com` does not have to exist for sending to work — Postfix does not verify senders. It is still worth creating it as an alias in Virtualmin, otherwise bounces and any reply that ignores `Reply-To` go nowhere.
+
+### Verifying delivery
+
+The release carries its own diagnostic. Run it from the live release, so it uses the same nodemailer and the same env the app does:
+
+```bash
+ssh bak-dev@bak-dev.com "cd /home/bak-dev/apps/portfolio/current && node scripts/check-mail.mjs --send"
+```
+
+It prints the resolved configuration, completes an SMTP handshake, and — with `--send` — delivers a test message. A failure names the cause (nothing listening on `:25`, bad credentials, certificate refused) instead of leaving you to infer it from a 502 in the browser.
+
+To exercise the actual route rather than just the transport:
+
+```bash
+curl -sS -X POST http://127.0.0.1:3100/api/contact \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Test","email":"you@example.com","subject":"Route check","message":"Hello"}'
+```
+
+`{"ok":true}` means the MTA accepted the message. Anything else returns a `code` — `invalid`, `rate_limited`, `unavailable`, `send_failed` — with the real reason in `npm run pm2:logs`.
+
+> `mailq` shows anything Postfix accepted but has not yet delivered; `/var/log/mail.log` shows what happened after. "Accepted" and "arrived" are not the same thing.
+
+The route rate-limits to 5 submissions per IP per 10 minutes, held in process memory. That is correct only because PM2 runs a single fork (`exec_mode: "fork"`, `instances: 1`); clustering the app would silently make the limit per worker.
 
 ## Deploying
 

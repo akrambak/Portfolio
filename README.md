@@ -146,9 +146,13 @@ Add a post by dropping a new `.mdx` file into `content/blog/`.
 
 ## Contact Form
 
-`ContactForm` posts to `POST /api/contact`, which validates `name`, `email`, `subject`, and `message`.
+`ContactForm` posts to `POST /api/contact`, which validates `name`, `email`, `subject` and `message`, then delivers the enquiry by SMTP through `src/lib/mail.ts`.
 
-> The API route currently **logs** submissions server-side; wiring an email provider (e.g. Resend, SendGrid, Nodemailer) is a documented TODO in `src/app/api/contact/route.ts`.
+In production that means the **VPS's own Postfix** on `127.0.0.1:25`: since the site's MX is the same machine, a submission is one loopback hop and a local delivery. `From` is a domain-owned `noreply@` address (an envelope sender the domain does not own fails SPF/DMARC); the visitor goes in `Reply-To`. Every transport setting is env-driven — see `.env.production.example` — so switching to an authenticated relay is configuration, not code.
+
+**A 200 means the MTA accepted the message.** Failures return a stable `code` (`invalid`, `rate_limited`, `unavailable`, `send_failed`) that the form translates; the underlying error stays in the server log. Submissions are rate-limited per IP, and a honeypot field discards bot traffic silently.
+
+Locally the route will try `127.0.0.1:25` and fail unless you point `SMTP_HOST` / `SMTP_PORT` in `.env.local` at a mail catcher. Delivery on the VPS is verified with `node scripts/check-mail.mjs --send` — see [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
 
 ## Analytics
 

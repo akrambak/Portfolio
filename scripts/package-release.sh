@@ -63,6 +63,9 @@ cp -R content "$DIST/content"
 mkdir -p "$DIST/scripts"
 cp scripts/remote-activate.sh "$DIST/scripts/remote-activate.sh"
 chmod +x "$DIST/scripts/remote-activate.sh"
+# Mail diagnostics, run on the VPS from the release root. See docs/DEPLOYMENT.md.
+cp scripts/check-mail.mjs "$DIST/scripts/check-mail.mjs"
+chmod +x "$DIST/scripts/check-mail.mjs"
 cp ecosystem.config.js "$DIST/ecosystem.config.js"
 cp .nvmrc "$DIST/.nvmrc"
 
@@ -80,6 +83,13 @@ log "Verifying bundle contents"
 [ -f "$DIST/server.js" ]            || die "dist/server.js missing"
 [ -d "$DIST/.next/static" ]         || die "dist/.next/static missing"
 [ -d "$DIST/content/blog" ]         || die "dist/content/blog missing"
+[ -f "$DIST/scripts/check-mail.mjs" ] || die "dist/scripts/check-mail.mjs missing"
+
+# nodemailer is an external (next.config.ts), so it reaches the bundle only via
+# Next's dependency tracer. If the tracer ever misses it the site builds, deploys
+# and serves happily — and every contact form submission 500s. Fail here instead.
+[ -d "$DIST/node_modules/nodemailer" ] || die \
+  "nodemailer is not in the traced node_modules — the contact form would fail in production."
 
 mdx_count=$(find "$DIST/content/blog" -name '*.mdx' | wc -l | tr -d ' ')
 src_count=$(find content/blog -name '*.mdx' | wc -l | tr -d ' ')

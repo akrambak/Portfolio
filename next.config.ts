@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
   // also copies `content/`, which /blog reads from disk at request time.
   output: "standalone",
 
+  // Keep nodemailer (src/lib/mail.ts) a real runtime require instead of letting
+  // webpack bundle it. Its transports are resolved dynamically, which the bundler
+  // mangles; as an external, Next's dependency tracer copies the package into
+  // .next/standalone/node_modules intact. scripts/package-release.sh asserts it
+  // landed there — a missing traced dependency is a production-only 500.
+  serverExternalPackages: ["nodemailer"],
+
   // Portfolio / Modules / Themes collapsed into a single filterable /work grid.
   // Permanent so existing inbound links and search results follow.
   async redirects() {
