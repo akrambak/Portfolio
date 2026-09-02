@@ -21,9 +21,30 @@ export default function ContactForm() {
     email: "",
     subject: "",
     message: "",
+    // Honeypot — see the hidden field at the bottom of the form.
+    company: "",
   });
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
+
+  /**
+   * The API answers failures with a stable code, not a sentence: the wording is
+   * translated here, and an SMTP error has no business reaching a visitor.
+   * Written as a switch rather than a lookup so the translation keys stay literal
+   * and typo-checked.
+   */
+  const messageForCode = (code: unknown) => {
+    switch (code) {
+      case "invalid":
+        return t("contactSection.invalid");
+      case "rate_limited":
+        return t("contactSection.rateLimited");
+      case "unavailable":
+        return t("contactSection.unavailable");
+      default:
+        return t("contactSection.error");
+    }
+  };
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -46,11 +67,11 @@ export default function ContactForm() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || t("contactSection.error"));
+        throw new Error(messageForCode(errorData?.code));
       }
 
       setStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", subject: "", message: "", company: "" });
     } catch (caught: unknown) {
       let message = t("contactSection.unexpectedError");
       if (caught instanceof Error) message = caught.message;
@@ -128,6 +149,25 @@ export default function ContactForm() {
           onChange={handleChange}
           disabled={submitting}
           className={FIELD + " resize-y"}
+        />
+      </div>
+
+      {/*
+        Honeypot. Positioned off-screen rather than `display:none`, and kept out
+        of the tab order and the accessibility tree, so no real visitor can reach
+        it — a bot filling every input gives itself away, and the API discards
+        that submission while still answering 200.
+      */}
+      <div aria-hidden="true" className="absolute left-[-9999px] h-0 w-0 overflow-hidden">
+        <label htmlFor="company">Company</label>
+        <input
+          type="text"
+          name="company"
+          id="company"
+          tabIndex={-1}
+          autoComplete="off"
+          value={formData.company}
+          onChange={handleChange}
         />
       </div>
 

@@ -197,6 +197,9 @@
     "sending": "Envoi…",
     "success": "Message envoyé. Je reviens vers vous rapidement.",
     "error": "L'envoi a échoué. Merci de réessayer.",
+    "invalid": "Merci de vérifier les champs ci-dessus et de réessayer.",
+    "rateLimited": "Trop de messages depuis cette connexion. Merci de réessayer plus tard.",
+    "unavailable": "Le formulaire de contact est hors service. Merci de m'écrire directement.",
     "unexpectedError": "Une erreur est survenue. Merci de réessayer."
   },
   "footer": {

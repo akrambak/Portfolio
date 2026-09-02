@@ -37,6 +37,8 @@ yarn-error.log*
 .env*
 # ...but the deploy config template must be committed; `.env*` above hides it.
 !.env.deploy.example
+# Same for the VPS runtime env template (see docs/DEPLOYMENT.md).
+!.env.production.example
 
 # vercel
 .vercel
