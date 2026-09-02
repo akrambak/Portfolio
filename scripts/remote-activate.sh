@@ -118,13 +118,18 @@ ln -sfn "$TARGET" "$CURRENT"
 # ---------------------------------------------------------------------------
 # 5. Reload PM2.
 # ---------------------------------------------------------------------------
+# `pm2 reload <ecosystem>` restarts an existing app but does NOT adopt a changed
+# cwd or script - PM2 keeps the pm_exec_path it was first started with. Reloading
+# over a hand-rolled `next start` registration therefore silently kept running the
+# old checkout. Delete and start instead, so the running process always matches
+# the config on disk. In fork mode a reload is a restart anyway, so this costs
+# nothing extra.
 reload_app() {
   if pm2 describe "$APP_NAME" >/dev/null 2>&1; then
-    APP_NAME="$APP_NAME" PORT="$PORT" pm2 reload "$ECOSYSTEM" --update-env
-  else
-    log "First start of $APP_NAME"
-    APP_NAME="$APP_NAME" PORT="$PORT" pm2 start "$ECOSYSTEM"
+    log "Replacing existing pm2 app $APP_NAME"
+    pm2 delete "$APP_NAME" >/dev/null 2>&1 || true
   fi
+  APP_NAME="$APP_NAME" PORT="$PORT" pm2 start "$ECOSYSTEM"
 }
 
 log "Reloading pm2 app $APP_NAME"
@@ -135,6 +140,26 @@ reload_app
 #    content/ is missing from the bundle, and it fails as an empty list rather
 #    than a non-200, so the body is checked too.
 # ---------------------------------------------------------------------------
+# Prove the thing answering on $PORT is the release we just deployed, not some
+# other process that happens to hold the port. Without this a stale app - or a
+# second pm2 daemon under another user - serves a perfectly healthy old site and
+# the deploy reports success while changing nothing.
+build_id_matches() {
+  local want served
+  want="$(cat "$CURRENT/.next/BUILD_ID" 2>/dev/null || true)"
+  [ -n "$want" ] || { warn "release has no .next/BUILD_ID"; return 1; }
+
+  # Every build serves its own manifest under its own build id.
+  served="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+    "http://127.0.0.1:$PORT/_next/static/$want/_buildManifest.js" || true)"
+  if [ "$served" = "200" ]; then
+    return 0
+  fi
+  warn "Port $PORT is serving a DIFFERENT build (manifest for $want returned ${served:-none})."
+  warn "Something other than this release is bound to $PORT - check for a second pm2 daemon (pm2-root.service) or an orphaned process."
+  return 1
+}
+
 health_check() {
   local base="http://127.0.0.1:$PORT"
   local deadline=$(( SECONDS + HEALTH_TIMEOUT ))
@@ -143,6 +168,7 @@ health_check() {
   while [ "$SECONDS" -lt "$deadline" ]; do
     code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "$base/" || true)"
     if [ "$code" = "200" ]; then
+      build_id_matches || return 1
       if ! curl -fsS --max-time 10 "$base/blog" > /tmp/.healthcheck-blog 2>/dev/null; then
         warn "/ is up but /blog failed"
         return 1
