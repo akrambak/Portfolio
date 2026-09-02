@@ -59,16 +59,45 @@ jobs:
       # Stock OpenSSH with a pinned known_hosts. No third-party SSH action, and
       # deliberately not StrictHostKeyChecking=no - an unpinned host key would
       # let anything that can win a DNS or BGP race collect the deploy key.
+      #
+      # Secrets arrive through env: rather than inline expressions, so they are
+      # never substituted into the shell source itself.
       - name: Configure SSH
+        env:
+          DEPLOY_KEY: ${{ secrets.VPS_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
-          test -n "$VPS_HOST" || { echo "::error::Repository variable VPS_HOST is not set"; exit 1; }
-          test -n "$VPS_USER" || { echo "::error::Repository variable VPS_USER is not set"; exit 1; }
-          test -n "$APP_DIR"  || { echo "::error::Repository variable APP_DIR is not set";  exit 1; }
+          fail() { echo "::error::$1"; exit 1; }
+
+          [ -n "$VPS_HOST" ] || fail "Repository variable VPS_HOST is not set"
+          [ -n "$VPS_USER" ] || fail "Repository variable VPS_USER is not set"
+          [ -n "$APP_DIR" ] || fail "Repository variable APP_DIR is not set"
+
+          # An empty secret used to sail through this step and resurface as an
+          # opaque SSH error during upload. The usual cause is defining these on
+          # the Variables tab rather than the Secrets tab, which makes
+          # secrets.* resolve to an empty string.
+          [ -n "$DEPLOY_KEY" ] || fail "Secret VPS_SSH_KEY is empty. Define it under Settings -> Secrets and variables -> Actions -> SECRETS tab, not Variables."
+          [ -n "$KNOWN_HOSTS" ] || fail "Secret VPS_KNOWN_HOSTS is empty. Define it under the SECRETS tab, not Variables."
+
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
+
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            fail "VPS_SSH_KEY is not a valid OpenSSH private key. Paste the whole file, including the BEGIN and END lines."
+          fi
+
+          # known_hosts is keyed by the exact host string being connected to, so
+          # pinning bak-dev.com while VPS_HOST holds an IP fails host key
+          # verification. Catch that here rather than as a cryptic scp error.
+          if ! ssh-keygen -F "$VPS_HOST" -f ~/.ssh/known_hosts > /dev/null; then
+            fail "VPS_KNOWN_HOSTS has no entry for '$VPS_HOST'. The pinned keys must be keyed by the exact value of VPS_HOST - use the hostname in both, or re-pin against the IP."
+          fi
+
+          echo "SSH configured for $VPS_USER@$VPS_HOST:$VPS_PORT"
 
       - name: Upload release
         run: |
