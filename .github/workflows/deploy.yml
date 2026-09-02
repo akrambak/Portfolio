@@ -33,9 +33,9 @@ jobs:
       RELEASE_ID: ${{ github.sha }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -81,13 +81,23 @@ jobs:
           [ -n "$KNOWN_HOSTS" ] || fail "Secret VPS_KNOWN_HOSTS is empty. Define it under the SECRETS tab, not Variables."
 
           mkdir -p ~/.ssh
-          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          # Strip CR: pasting a key through a Windows clipboard commonly turns
+          # LF into CRLF, and OpenSSH will not parse the result.
+          printf '%s\n' "$DEPLOY_KEY" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' "$KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
           if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
-            fail "VPS_SSH_KEY is not a valid OpenSSH private key. Paste the whole file, including the BEGIN and END lines."
+            # Report the shape, never the contents. A one-line key means the
+            # newlines were lost on paste, which is the usual cause and is
+            # otherwise indistinguishable from a corrupt key.
+            lines=$(wc -l < ~/.ssh/deploy_key)
+            echo "::error::VPS_SSH_KEY did not parse as an OpenSSH private key. The secret holds $lines line(s)."
+            if [ "$lines" -le 2 ]; then
+              fail "A valid ed25519 key is about 8 lines. The line breaks were lost on paste - re-copy the file with 'Get-Content \$HOME\\.ssh\\portfolio_deploy -Raw | Set-Clipboard' and paste into the secret field unmodified."
+            fi
+            fail "Paste the whole file, including the BEGIN and END lines, with its line breaks intact."
           fi
 
           # known_hosts is keyed by the exact host string being connected to, so
