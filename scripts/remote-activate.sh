@@ -18,7 +18,7 @@ RELEASE_ID="${RELEASE_ID:?RELEASE_ID is required}"
 TARBALL="${TARBALL:?TARBALL is required}"
 APP_NAME="${APP_NAME:-portfolio}"
 PORT="${PORT:-3100}"
-KEEP_RELEASES="${KEEP_RELEASES:-5}"
+KEEP_RELEASES="${KEEP_RELEASES:-3}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-45}"
 
 RELEASES="$APP_DIR/releases"
@@ -61,7 +61,21 @@ command -v curl >/dev/null || die "curl not found - needed for the health check"
 # ---------------------------------------------------------------------------
 [ -f "$TARBALL" ] || die "Tarball not found: $TARBALL"
 
-WANT_MAJOR="$(tar -xzOf "$TARBALL" ./.nvmrc 2>/dev/null | tr -dc '0-9.' | cut -d. -f1)"
+# Every read below pipes tar through something, so a corrupt archive would fail
+# under `set -o pipefail` with tar's own exit 2 and no message of its own -
+# indistinguishable from an application error. Check it once, plainly.
+if ! gzip -t "$TARBALL" 2>/dev/null; then
+  die "Tarball is not valid gzip: $TARBALL (truncated upload, or the disk filled during transfer)"
+fi
+
+# Read .nvmrc out of the archive. package-release.sh writes members with a
+# leading ./, but accept either spelling and never let tar's exit status kill
+# the script silently: piping it under `set -o pipefail` would abort here with
+# tar's exit 2 and no message, which is indistinguishable from a real failure.
+nvmrc_raw="$(tar -xzOf "$TARBALL" ./.nvmrc 2>/dev/null || tar -xzOf "$TARBALL" .nvmrc 2>/dev/null || true)"
+WANT_MAJOR="$(printf '%s' "$nvmrc_raw" | tr -dc '0-9.' | cut -d. -f1)"
+[ -n "$WANT_MAJOR" ] || warn "No .nvmrc in the bundle - skipping the node version check"
+
 HAVE_MAJOR="$(node --version | tr -d v | cut -d. -f1)"
 if [ -n "$WANT_MAJOR" ] && [ "$WANT_MAJOR" != "$HAVE_MAJOR" ]; then
   die "Node major mismatch: bundle built for v$WANT_MAJOR, VPS has v$HAVE_MAJOR. Align .nvmrc with the VPS or upgrade node."
@@ -72,6 +86,45 @@ log "Node v$HAVE_MAJOR matches the bundle"
 # 2. Unpack into a fresh release directory.
 # ---------------------------------------------------------------------------
 mkdir -p "$RELEASES" "$SHARED/logs"
+
+# ---------------------------------------------------------------------------
+# Space preflight. A Virtualmin per-user quota is invisible to df -- the
+# filesystem can show 100GB free while the account has none -- and tar exits 2
+# on "Disk quota exceeded", which looks nothing like an application failure.
+# Check before unpacking so this reports itself instead of half-extracting a
+# release and failing in the middle.
+# ---------------------------------------------------------------------------
+available_kb() {
+  local line used limit
+  if command -v quota >/dev/null 2>&1; then
+    # `quota` without -s prints KB. Fields: fs, used, soft, hard, ...
+    line="$(quota 2>/dev/null | awk '/^[[:space:]]*\/dev\// {print; exit}')"
+    if [ -n "$line" ]; then
+      used="$(echo "$line" | awk '{gsub(/\*/,"",$2); print $2}')"
+      limit="$(echo "$line" | awk '{gsub(/\*/,"",$4); print $4}')"
+      if [ -n "$limit" ] && [ "$limit" -gt 0 ] 2>/dev/null; then
+        echo $(( limit - used ))
+        return 0
+      fi
+    fi
+  fi
+  df -Pk "$APP_DIR" | awk 'NR==2 {print $4}'
+}
+
+tarball_kb=$(( $(wc -c < "$TARBALL") / 1024 ))
+# The bundle is gzipped JS; it expands roughly 3.5x. Ask for 4x plus a margin
+# so the unpack cannot land the account exactly on its limit.
+need_kb=$(( tarball_kb * 4 + 51200 ))
+avail_kb="$(available_kb)"
+
+if [ -n "$avail_kb" ] && [ "$avail_kb" -lt "$need_kb" ] 2>/dev/null; then
+  warn "Available: $(( avail_kb / 1024 ))MB   Needed: ~$(( need_kb / 1024 ))MB"
+  warn "If df shows plenty of free space, this is a per-user quota - check 'quota -s'."
+  warn "Reclaim space by lowering KEEP_RELEASES (currently $KEEP_RELEASES), removing an"
+  warn "obsolete checkout, or raising the account quota in Virtualmin."
+  die "Not enough space to unpack the release. Refusing to start, rather than fail half-extracted."
+fi
+log "Space check OK: $(( avail_kb / 1024 ))MB available, ~$(( need_kb / 1024 ))MB needed"
 
 if [ -e "$TARGET" ]; then
   log "Release $RELEASE_ID already unpacked - replacing it"
