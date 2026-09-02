@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+# A superseded push has nothing worth finishing.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Lint and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # `next build` typechecks the whole project, so there is no separate
+      # `tsc --noEmit` step - it would only repeat this work.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://bak-dev.com' }}
+
+      # Proves the release would actually be deployable, including the
+      # content/blog copy that Next's tracer misses. Catching that here means a
+      # PR cannot merge a change that breaks packaging.
+      - name: Package
+        run: bash scripts/package-release.sh

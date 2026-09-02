@@ -2,6 +2,9 @@
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev -p ${PORT:-3210}",
     "dev:turbo": "next dev --turbopack -p ${PORT:-3210}",
@@ -9,8 +12,8 @@
     "start": "next start -p ${PORT:-3100}",
     "start:3100": "next start -p 3100",
     "preview": "next build && next start -p ${PORT:-3211}",
-    "deploy": "bash scripts/deploy.sh",
-    "pm2:setup": "bash scripts/pm2-setup.sh",
+    "package": "bash scripts/package-release.sh",
+    "deploy:local": "bash scripts/deploy-local.sh",
     "pm2:status": "PM2_HOME=/home/bak-dev/.pm2 pm2 list",
     "pm2:logs": "PM2_HOME=/home/bak-dev/.pm2 pm2 logs portfolio --lines 50",
     "lint": "next lint"

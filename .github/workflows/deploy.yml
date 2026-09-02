@@ -1,0 +1,110 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Two pushes in quick succession must not race for the `current` symlink.
+# Queue them instead of cancelling - a half-finished deploy is worse than a slow one.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Lets a manual approval gate be switched on later in repo settings without
+    # touching this file.
+    environment:
+      name: production
+      url: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://bak-dev.com' }}
+
+    env:
+      VPS_HOST: ${{ vars.VPS_HOST }}
+      VPS_USER: ${{ vars.VPS_USER }}
+      VPS_PORT: ${{ vars.VPS_PORT || '22' }}
+      APP_DIR: ${{ vars.APP_DIR }}
+      APP_NAME: ${{ vars.APP_NAME || 'portfolio' }}
+      APP_PORT: ${{ vars.APP_PORT || '3100' }}
+      RELEASE_ID: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # NEXT_PUBLIC_SITE_URL is inlined into the bundle here and cannot be
+      # changed on the VPS afterwards. Changing it requires a rebuild.
+      - name: Build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://bak-dev.com' }}
+
+      - name: Package release
+        run: bash scripts/package-release.sh
+
+      # Stock OpenSSH with a pinned known_hosts. No third-party SSH action, and
+      # deliberately not StrictHostKeyChecking=no - an unpinned host key would
+      # let anything that can win a DNS or BGP race collect the deploy key.
+      - name: Configure SSH
+        run: |
+          test -n "$VPS_HOST" || { echo "::error::Repository variable VPS_HOST is not set"; exit 1; }
+          test -n "$VPS_USER" || { echo "::error::Repository variable VPS_USER is not set"; exit 1; }
+          test -n "$APP_DIR"  || { echo "::error::Repository variable APP_DIR is not set";  exit 1; }
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Upload release
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+              -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "mkdir -p '$APP_DIR/tmp'"
+          scp -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+              -P "$VPS_PORT" release.tar.gz \
+              "$VPS_USER@$VPS_HOST:$APP_DIR/tmp/$RELEASE_ID.tar.gz"
+
+      # remote-activate.sh travels inside the tarball, so extract just that file
+      # first, then hand it the tarball. All the release logic stays in the repo.
+      - name: Activate release
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+              -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" "
+            set -euo pipefail
+            cd '$APP_DIR/tmp'
+            rm -rf activate && mkdir -p activate
+            tar -xzf '$RELEASE_ID.tar.gz' -C activate ./scripts/remote-activate.sh
+            APP_DIR='$APP_DIR' \
+            RELEASE_ID='$RELEASE_ID' \
+            TARBALL='$APP_DIR/tmp/$RELEASE_ID.tar.gz' \
+            APP_NAME='$APP_NAME' \
+            PORT='$APP_PORT' \
+            bash activate/scripts/remote-activate.sh
+          "
+
+      - name: Verify through Apache
+        run: |
+          url="${{ vars.NEXT_PUBLIC_SITE_URL || 'https://bak-dev.com' }}"
+          for path in "/" "/blog"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$url$path")
+            echo "$url$path -> $code"
+            test "$code" = "200" || { echo "::error::$url$path returned $code"; exit 1; }
+          done
+
+      - name: Remove deploy key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

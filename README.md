@@ -44,10 +44,10 @@ Open [http://localhost:3210](http://localhost:3210).
 | `npm run start` | Serve the production build on **port 3100** (honours `PORT`) |
 | `npm run start:3100` | Explicit port-3100 alias, kept for existing tooling |
 | `npm run preview` | Build, then serve on 3211 — a safe local check that never collides with the live site |
-| `npm run deploy` | **Production deploy:** build as `bak-dev`, restart PM2, health-check |
-| `npm run pm2:setup` | Register the PM2 app from `ecosystem.config.js` and persist it for boot |
-| `npm run pm2:status` / `pm2:logs` | Inspect the live process |
 | `npm run lint` | Run ESLint (`eslint-config-next`) |
+| `npm run package` | Assemble `dist/` + `release.tar.gz` from a completed build |
+| `npm run deploy:local` | Build, package and deploy to the VPS from this machine, bypassing CI |
+| `npm run pm2:status` / `pm2:logs` | Inspect the live process |
 
 ## Project Structure
 
@@ -156,36 +156,44 @@ Google Tag Manager (container `GTM-MD68KMQC`) is injected in `src/app/layout.tsx
 
 ## Deployment
 
-Optimized for [Vercel](https://vercel.com/new). `npm run build` produces a standard Next.js build.
+Deployed to a self-managed VPS (Apache under Virtualmin, PM2) by GitHub Actions on every push to `main`. **See [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)** for the pipeline, first-time VPS setup, the Virtualmin proxy configuration and the rollback runbook.
 
 The live site runs on this VPS under **PM2** as the `bak-dev` user, with Apache
 reverse-proxying `bak-dev.com` to `127.0.0.1:3100` (`/etc/apache2/sites-available/bak-dev.com.conf`).
 
+Deploys run from **GitHub Actions on every push to `main`** — see
+**[`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)** for the pipeline, VPS layout, the Virtualmin
+proxy configuration and the rollback runbook. In short: CI builds an
+`output: "standalone"` bundle, ships it over SSH into `releases/<sha>`, flips a `current`
+symlink, reloads PM2 and health-checks the result, rolling back automatically if the check
+fails. `npm run deploy:local` does the same from your machine, reusing the identical
+activation script.
+
 The process is defined by **`ecosystem.config.js`** in this repo, so the app definition is
-version-controlled rather than living only in PM2's dump file. `npm run pm2:setup` applies it
-and runs `pm2 save`; the `pm2-bak-dev` systemd unit restores the saved list on boot.
-`pm2-logrotate` is installed (10MB per file, 7 retained, compressed, daily) so logs cannot
-grow unbounded.
+version-controlled rather than living only in PM2's dump file. The `pm2-bak-dev` systemd unit
+restores the saved list on boot. `pm2-logrotate` is installed (10MB per file, 7 retained,
+compressed, daily) so logs cannot grow unbounded.
 
-To ship a change:
+A static export is not possible: `src/i18n/request.ts` calls `cookies()`, so `/`, `/work`,
+`/about`, `/contact` and `/blog` all render per request and need a Node process.
 
-```bash
-npm run deploy
-```
-
-That builds and restarts in the right order, then health-checks :3100.
-
-Two failure modes it exists to prevent — both have bitten this project:
+Three failure modes worth knowing — all have bitten this project:
 
 - **Never build as root.** `npm ci` or `next build` as root leaves root-owned files in
   `.next/` and `node_modules/`. The server runs as `bak-dev`, so it can read them but
   cannot write `.next/cache`, which silently breaks the ISR and image-optimisation
-  caches. `deploy.sh` re-execs as `bak-dev` for exactly this reason.
+  caches. *The pipeline avoids this structurally* — CI builds on the runner and ships a
+  finished bundle over SSH as `bak-dev`, so nothing is ever built on the server.
 - **Never `rm -rf .next` while the server is running,** and never hand-run `next start`
   in production. PM2 already owns :3100, so a manual start just reports `EADDRINUSE`.
   Deleting `.next` under a live process is worse: it keeps serving HTML that references
   chunk hashes that no longer exist on disk, and every asset then 400s as `text/html` —
-  which the browser rejects under `X-Content-Type-Options: nosniff`. Use `npm run deploy`.
+  which the browser rejects under `X-Content-Type-Options: nosniff`. *The release model
+  makes this impossible too* — each release is an immutable directory and the cutover is
+  a single symlink flip, so a running process never has its files mutated underneath it.
+- **A green deploy can still be a broken site.** `/blog` reads `content/blog` from disk at
+  request time; a bundle missing it returns **200** with an empty list. The health check
+  therefore asserts that `/blog` actually links posts, not merely that it responds.
 
 Use `npm run preview` (port 3211) to check a build locally without touching the live site.
 
