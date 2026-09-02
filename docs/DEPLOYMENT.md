@@ -40,7 +40,7 @@ Deliberately outside `public_html`, so Apache never serves application source:
 
 ```
 /home/<domain-user>/apps/portfolio/
-├── releases/<sha>/       immutable release trees (newest 5 kept)
+├── releases/<sha>/       immutable release trees (newest 3 kept)
 ├── current -> releases/<sha>
 ├── shared/
 │   ├── .env.production   runtime secrets, mode 600, symlinked into each release
@@ -65,7 +65,7 @@ setup below is therefore **already done**:
 | Node | **v24.12.0**, npm 11.7.0 — root's nvm build, exposed at `/usr/local/bin/node` |
 | PM2 | 6.0.14, app `portfolio` on :3100, `pm2-bak-dev.service` enabled, `pm2-logrotate` configured |
 | Apache | proxying `bak-dev.com` → `127.0.0.1:3100`, with `/.well-known` correctly excluded |
-| Old deployment | `/home/bak-dev/Portfolio` — 930MB checkout running `next start` |
+| Disk | 2048M Virtualmin **per-user quota** on `bak-dev` — invisible to `df`, which shows the host's 102GB free |
 
 `.nvmrc` is set to **24** to match this box. `remote-activate.sh` compares them and refuses
 to deploy on a mismatch, so if node here ever changes, change `.nvmrc` with it.
@@ -75,27 +75,49 @@ The Apache proxy exclusion was verified by content type rather than assumed:
 `/.well-known/acme-challenge/nope` returns Apache's own error page (`charset=iso-8859-1`) —
 i.e. served from disk, so Let's Encrypt renewal is not routed into Node.
 
-## Cutover — read before the first deploy
+## Cutover (completed 2026-09-02)
 
-The first deploy **takes over the live site.** The new app deliberately reuses the same PM2
-name (`portfolio`) and port (3100) as the existing hand-rolled deployment, so `pm2 reload`
-replaces the running process and Apache needs no change.
+The pipeline took over a site that had been deployed by hand, reusing the same PM2 name
+(`portfolio`) and port (3100) so Apache needed no change. Four things went wrong on the way,
+each now guarded against in code. They are recorded because they are the reasons the checks
+exist, and removing a check because it "never fires" would reintroduce one of them.
 
-The risk is specific to that first run: `remote-activate.sh` rolls back by pointing `current`
-at the *previous release*, and on deploy #1 there is no previous release. If the health check
-fails then, the site stays down until fixed by hand. From deploy #2 onward, rollback works
-normally.
+1. **Secrets defined as repository *variables*.** `secrets.*` resolved to empty strings, and
+   the SSH step wrote empty files and exited 0. Now validated explicitly.
+2. **CRLF in the pasted key.** OpenSSH would not parse it. Now stripped with `tr -d '
+'`.
+3. **`pm2 reload` does not adopt a changed `cwd`/`script`.** It kept running the old checkout
+   while reporting success. Now `pm2 delete` + `pm2 start`.
+4. **The health check confused a port with an identity.** It probed :3100, got a healthy site,
+   and never noticed it was the *old* build — including the `/blog` content assertion, since
+   the old app served real posts. Now it requests the manifest under the new release's own
+   `BUILD_ID`, which only that build can serve.
 
-The manual fallback for that window — the old checkout is untouched by this pipeline:
+Two of these produced a **green deploy that changed nothing**, which is worse than a red one.
+
+A second PM2 daemon (`pm2-root.service`) was also running the app as root and holding :3100.
+It was deleted from root's PM2. **Root must run `pm2 save`**, or a reboot resurrects it and
+the conflict returns.
+
+The old 930MB checkout at `/home/bak-dev/Portfolio` has been deleted — it was consuming half
+the account quota, and its two unique commits are on `origin/main`. There is therefore **no
+git checkout on the VPS any more**, by design: CI builds, the server only receives bundles.
+
+### Rollback
+
+`current` is a symlink and the previous release is kept, so rollback is a symlink swap:
 
 ```bash
-pm2 delete portfolio
-cd /home/bak-dev/Portfolio && pm2 start ecosystem.config.js && pm2 save
+cd /home/bak-dev/apps/portfolio
+ls -1t releases                       # pick the previous one
+ln -sfn releases/<sha> current
+pm2 delete portfolio && pm2 start shared/ecosystem.config.js && pm2 save
 ```
 
-Once a few releases exist, `/home/bak-dev/Portfolio` (930MB) can be removed. Keep it until
-then. Note it holds branch `chore/deploy-workflow-and-ports`, whose commits are now merged
-into this repo.
+`pm2 delete` then `start` rather than `reload`, for the reason in item 3 above.
+
+This path is not theoretical: deploy #4 failed activation, rolled back automatically, and the
+site stayed up on the previous release with zero restarts.
 
 ## First-time setup
 
@@ -268,6 +290,25 @@ pm2 describe portfolio                        # confirm cwd is .../current
 cat /home/<domain-user>/apps/portfolio/current/RELEASE   # what is deployed
 tail -f /home/<domain-user>/apps/portfolio/shared/logs/error.log
 ```
+
+## Disk quota
+
+The `bak-dev` account has a **2048M Virtualmin quota**, and `df` cannot see it — the host
+shows 102GB free while the account has none. When it fills, `tar` fails with
+`Disk quota exceeded` and exits **2**, which matches none of the deploy's own error paths.
+That is what broke deploy #4.
+
+`remote-activate.sh` now preflights available space (reading the per-user quota, falling back
+to `df`) and refuses up front rather than failing half-extracted. Retention is 3 releases at
+roughly 76MB each.
+
+```bash
+quota -s                                  # as bak-dev - the number that matters
+du -sh ~/* | sort -rh | head              # where it went
+```
+
+If it tightens again, raise the quota in Virtualmin (Edit Virtual Server → Quota) rather than
+cutting retention below 3 — two releases is the minimum for a rollback to have a target.
 
 ## Post-deploy verification
 
