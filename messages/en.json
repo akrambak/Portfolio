@@ -179,23 +179,105 @@
   "contactPage": {
     "eyebrow": "Contact",
     "title": "Let's talk about it",
-    "lede": "Describe the project in a few lines. I reply to everything that is not a recruiter blast.",
-    "formTitle": "Send a message",
-    "infoTitle": "Direct",
+    "lede": "Pick what this is about and the sheet asks only what that needs. Most of it is one tap.",
+    "routeLabel": "What is this about?",
+    "progress": "{done} of {total} complete",
+    "titleBlock": "Title block",
+    "drawnBy": "Drawn by",
+    "locationLabel": "Location",
+    "directLabel": "Direct",
+    "responseLabel": "Response",
+    "responseValue": "Within one working day",
+    "optional": "Optional",
     "bookTitle": "Book a slot",
     "bookBody": "Prefer talking it through? Grab a time that works for you.",
     "bookCta": "Open the calendar"
   },
+  "contactRoute": {
+    "project": {
+      "label": "New project",
+      "body": "Scope, budget and timeline. The full brief.",
+      "formTitle": "New project"
+    },
+    "question": {
+      "label": "Quick question",
+      "body": "One thing you want to know. Nothing to qualify.",
+      "formTitle": "Quick question"
+    },
+    "hiring": {
+      "label": "Hiring",
+      "body": "Contract, fractional or full-time.",
+      "formTitle": "Hiring"
+    },
+    "hello": {
+      "label": "Say hello",
+      "body": "No agenda. Read anyway.",
+      "formTitle": "Say hello"
+    }
+  },
+  "contactFields": {
+    "projectType": {
+      "legend": "What kind of work",
+      "options": {
+        "aiAgents": "AI agents",
+        "ecommerce": "E-commerce",
+        "webApp": "Web app",
+        "mobile": "Mobile",
+        "legacy": "Legacy rescue",
+        "unsure": "Not sure"
+      }
+    },
+    "budget": {
+      "legend": "Budget",
+      "options": {
+        "under5k": "Under 5k",
+        "from5to15k": "5-15k",
+        "from15to40k": "15-40k",
+        "over40k": "40k+",
+        "undecided": "Not defined"
+      }
+    },
+    "timeline": {
+      "legend": "Timeline",
+      "options": {
+        "asap": "ASAP",
+        "month": "Within a month",
+        "quarter": "This quarter",
+        "exploring": "Just exploring"
+      }
+    },
+    "engagement": {
+      "legend": "Engagement",
+      "options": {
+        "fulltime": "Full-time",
+        "contract": "Contract (B2B)",
+        "fractional": "Fractional",
+        "advisory": "Advisory"
+      }
+    },
+    "heardVia": {
+      "legend": "How you found me",
+      "options": {
+        "github": "GitHub",
+        "linkedin": "LinkedIn",
+        "search": "Search",
+        "referral": "Referral",
+        "event": "Conference",
+        "other": "Elsewhere"
+      }
+    }
+  },
   "contactSection": {
-    "title": "Get in touch",
     "name": "Name",
     "email": "Email",
     "message": "Message",
     "send": "Send message",
-    "cta": "Start a project",
-    "subject": "Subject",
-    "sending": "Sending…",
-    "success": "Message sent. I'll get back to you shortly.",
+    "sending": "Sending...",
+    "successTitle": "Enquiry filed.",
+    "successBody": "It reached the inbox with your answers attached. I reply to everything that is not a recruiter blast.",
+    "successAgain": "Send another",
+    "errorRequired": "Required",
+    "errorEmail": "Check this address",
     "error": "That didn't send. Please try again.",
     "invalid": "Please check the fields above and try again.",
     "rateLimited": "Too many messages from this connection. Please try again later.",

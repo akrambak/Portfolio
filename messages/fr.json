@@ -179,23 +179,105 @@
   "contactPage": {
     "eyebrow": "Contact",
     "title": "Parlons-en",
-    "lede": "Décrivez le projet en quelques lignes. Je réponds à tout ce qui n'est pas un mail de masse.",
-    "formTitle": "Envoyer un message",
-    "infoTitle": "Direct",
+    "lede": "Choisissez le sujet : le formulaire ne demande que le nécessaire. L'essentiel tient en un clic.",
+    "routeLabel": "De quoi s'agit-il ?",
+    "progress": "{done} sur {total} rempli",
+    "titleBlock": "Cartouche",
+    "drawnBy": "Établi par",
+    "locationLabel": "Localisation",
+    "directLabel": "Direct",
+    "responseLabel": "Réponse",
+    "responseValue": "Sous un jour ouvré",
+    "optional": "Facultatif",
     "bookTitle": "Réserver un créneau",
     "bookBody": "Vous préférez en parler de vive voix ? Choisissez un horaire qui vous arrange.",
     "bookCta": "Ouvrir le calendrier"
   },
+  "contactRoute": {
+    "project": {
+      "label": "Nouveau projet",
+      "body": "Périmètre, budget et calendrier. Le brief complet.",
+      "formTitle": "Nouveau projet"
+    },
+    "question": {
+      "label": "Une question",
+      "body": "Une chose à savoir. Rien à qualifier.",
+      "formTitle": "Une question"
+    },
+    "hiring": {
+      "label": "Recrutement",
+      "body": "Freelance, temps partiel ou temps plein.",
+      "formTitle": "Recrutement"
+    },
+    "hello": {
+      "label": "Dire bonjour",
+      "body": "Sans objectif précis. Lu quand même.",
+      "formTitle": "Dire bonjour"
+    }
+  },
+  "contactFields": {
+    "projectType": {
+      "legend": "Type de projet",
+      "options": {
+        "aiAgents": "Agents IA",
+        "ecommerce": "E-commerce",
+        "webApp": "Appli web",
+        "mobile": "Mobile",
+        "legacy": "Reprise legacy",
+        "unsure": "Indécis"
+      }
+    },
+    "budget": {
+      "legend": "Budget",
+      "options": {
+        "under5k": "Moins de 5 k€",
+        "from5to15k": "5-15 k€",
+        "from15to40k": "15-40 k€",
+        "over40k": "40 k€+",
+        "undecided": "À définir"
+      }
+    },
+    "timeline": {
+      "legend": "Échéance",
+      "options": {
+        "asap": "Au plus vite",
+        "month": "Sous un mois",
+        "quarter": "Ce trimestre",
+        "exploring": "J'explore"
+      }
+    },
+    "engagement": {
+      "legend": "Type de contrat",
+      "options": {
+        "fulltime": "Temps plein",
+        "contract": "Freelance B2B",
+        "fractional": "Temps partiel",
+        "advisory": "Conseil"
+      }
+    },
+    "heardVia": {
+      "legend": "Comment m'avez-vous trouvé",
+      "options": {
+        "github": "GitHub",
+        "linkedin": "LinkedIn",
+        "search": "Recherche",
+        "referral": "Recommandation",
+        "event": "Conférence",
+        "other": "Ailleurs"
+      }
+    }
+  },
   "contactSection": {
-    "title": "Me contacter",
     "name": "Nom",
     "email": "E-mail",
     "message": "Message",
     "send": "Envoyer le message",
-    "cta": "Démarrer un projet",
-    "subject": "Sujet",
-    "sending": "Envoi…",
-    "success": "Message envoyé. Je reviens vers vous rapidement.",
+    "sending": "Envoi...",
+    "successTitle": "Demande enregistrée.",
+    "successBody": "Elle est arrivée dans la boîte de réception avec vos réponses. Je réponds à tout ce qui n'est pas un mail de masse.",
+    "successAgain": "Envoyer un autre message",
+    "errorRequired": "Obligatoire",
+    "errorEmail": "Vérifiez cette adresse",
     "error": "L'envoi a échoué. Merci de réessayer.",
     "invalid": "Merci de vérifier les champs ci-dessus et de réessayer.",
     "rateLimited": "Trop de messages depuis cette connexion. Merci de réessayer plus tard.",

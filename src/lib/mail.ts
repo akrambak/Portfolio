@@ -31,6 +31,14 @@ export interface ContactSubmission {
   email: string;
   subject: string;
   message: string;
+  /** Which sheet the enquiry was filed under. An allow-listed slug, so header-safe. */
+  route?: string;
+  /**
+   * The multiple-choice answers, already resolved to English label/value pairs by the
+   * route. Pre-resolved on purpose: it keeps i18n out of the mailer, and it means a
+   * sixth question later is a change to route.ts alone.
+   */
+  qualifiers?: ReadonlyArray<readonly [label: string, value: string]>;
   /** Recorded in the body for abuse triage. Never interpolated into a header. */
   ip?: string;
 }
@@ -153,11 +161,20 @@ function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
 }
 
-function textBody({ name, email, subject, message, ip }: ContactSubmission): string {
+function textBody({ name, email, subject, message, qualifiers, ip }: ContactSubmission): string {
+  const rows: ReadonlyArray<readonly [string, string]> = [
+    ["Name", name],
+    ["Email", email],
+    ["Subject", subject],
+    ...(qualifiers ?? []),
+  ];
+
+  // One column sized to the longest label present. A fixed width silently collides with
+  // its own value the moment a label reaches it — "Timeline:" is exactly nine characters.
+  const width = Math.max(...rows.map(([label]) => label.length)) + 2;
+
   return [
-    `Name:    ${name}`,
-    `Email:   ${email}`,
-    `Subject: ${subject}`,
+    ...rows.map(([label, value]) => `${(label + ":").padEnd(width)}${value}`),
     "",
     message,
     "",
@@ -167,11 +184,14 @@ function textBody({ name, email, subject, message, ip }: ContactSubmission): str
   ].join("\n");
 }
 
-function htmlBody({ name, email, subject, message, ip }: ContactSubmission): string {
+function htmlBody({ name, email, subject, message, qualifiers, ip }: ContactSubmission): string {
   const rows = [
     ["Name", escapeHtml(name)],
     ["Email", `<a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>`],
     ["Subject", escapeHtml(subject)],
+    // Values come from a frozen allow-list, but they still go through escapeHtml —
+    // the escaping stays unconditional rather than resting on where they came from.
+    ...(qualifiers ?? []).map(([label, value]) => [label, escapeHtml(value)]),
   ]
     .map(
       ([label, value]) =>
@@ -208,8 +228,12 @@ export async function sendContactMail(submission: ContactSubmission): Promise<vo
     subject: `[Portfolio] ${submission.subject}`,
     text: textBody(submission),
     html: htmlBody(submission),
-    // Gives the inbox something stable to filter on.
-    headers: { "X-Portfolio-Contact": "1" },
+    // Gives the inbox something stable to filter on. The route is an allow-listed
+    // slug, so it cannot carry a CR/LF into the header it is written to.
+    headers: {
+      "X-Portfolio-Contact": "1",
+      ...(submission.route ? { "X-Portfolio-Route": submission.route } : {}),
+    },
   });
 }
 
