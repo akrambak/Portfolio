@@ -41,6 +41,8 @@ export default function ContactForm() {
         return t("contactSection.rateLimited");
       case "unavailable":
         return t("contactSection.unavailable");
+      case "send_failed":
+        return t("contactSection.sendFailed");
       default:
         return t("contactSection.error");
     }
@@ -187,7 +189,7 @@ export default function ContactForm() {
             initial={{ opacity: 0, y: reduced ? 0 : 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduced ? 0 : dur.base, ease: ease.out }}
-            className="flex items-center gap-2 text-sm text-emerald-500"
+            className="flex items-center gap-2 text-sm text-accent"
           >
             {t("contactSection.success")}
           </motion.p>
@@ -198,7 +200,7 @@ export default function ContactForm() {
             initial={{ opacity: 0, y: reduced ? 0 : 4 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: reduced ? 0 : dur.base, ease: ease.out }}
-            className="flex items-center gap-2 text-sm text-red-500"
+            className="flex items-center gap-2 text-sm text-accent-2"
           >
             {error || t("contactSection.error")}
           </motion.p>

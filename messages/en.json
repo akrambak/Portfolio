@@ -200,6 +200,7 @@
     "invalid": "Please check the fields above and try again.",
     "rateLimited": "Too many messages from this connection. Please try again later.",
     "unavailable": "The contact form is offline right now. Please email me directly.",
+    "sendFailed": "The mail server refused it. Please email me directly.",
     "unexpectedError": "Something went wrong. Please try again."
   },
   "footer": {
