@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 
 import { MailNotConfiguredError, sendContactMail } from "@/lib/mail";
+import {
+  EN_FIELD_LABELS,
+  EN_LABELS,
+  EN_ROUTE_LABELS,
+  FALLBACK_ROUTE,
+  MAX_PROJECT_TYPES,
+  OPTIONS,
+  ROUTE_FIELDS,
+  isRoute,
+  type ChoiceField,
+  type EnquiryRoute,
+} from "@/lib/enquiry";
 
 /**
  * POST /api/contact — delivers a contact-form submission to the inbox.
@@ -97,12 +109,60 @@ function field(value: unknown, max: number, singleLine: boolean): string | null 
   return trimmed;
 }
 
+/**
+ * One multiple-choice answer, or "" if it is absent or not on the list.
+ *
+ * Deliberately NOT routed through `field()`: that only checks length and control
+ * characters, so it would happily pass arbitrary visitor prose under a spec-field
+ * label. Membership in a closed list is a strictly stronger guarantee — the value
+ * is not merely sanitised, it is one of a handful of known ASCII slugs, so it
+ * cannot carry CR/LF into a header and cannot be length-abused.
+ */
+function choice(value: unknown, allowed: readonly string[]): string {
+  return typeof value === "string" && allowed.includes(value) ? value : "";
+}
+
+/** The same, for the one multi-select. Unknown entries are dropped, never fatal. */
+function choices(value: unknown, allowed: readonly string[], max: number): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  for (const entry of value) {
+    if (typeof entry === "string" && allowed.includes(entry)) seen.add(entry);
+  }
+  return [...seen].slice(0, max);
+}
+
 // Deliberately loose. Address syntax is not worth policing beyond "could plausibly
 // be delivered" — the real check is whether the reply bounces.
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 function fail(code: ErrorCode, status: number, headers?: HeadersInit) {
   return NextResponse.json({ code }, { status, headers });
+}
+
+/**
+ * The subject the visitor no longer types.
+ *
+ * Composed from validated slugs and always English: the inbox is the site owner's
+ * and should not change language with a visitor's locale cookie. It also means the
+ * one field that lands in an SMTP header is no longer visitor-authored at all.
+ */
+function deriveSubject(route: EnquiryRoute, answers: Record<ChoiceField, string[] | string>) {
+  const parts: string[] = [];
+
+  for (const name of ROUTE_FIELDS[route]) {
+    const value = answers[name];
+    if (Array.isArray(value)) {
+      if (value.length === 0) continue;
+      const head = EN_LABELS[name][value[0]];
+      parts.push(value.length > 1 ? `${head} +${value.length - 1}` : head);
+    } else if (value) {
+      parts.push(EN_LABELS[name][value]);
+    }
+  }
+
+  const head = EN_ROUTE_LABELS[route];
+  return parts.length > 0 ? `${head} — ${parts.join(" · ")}` : head;
 }
 
 export async function POST(request: Request) {
@@ -136,12 +196,51 @@ export async function POST(request: Request) {
 
   const name = field(payload.name, LIMITS.name, true);
   const email = field(payload.email, LIMITS.email, true);
-  const subject = field(payload.subject, LIMITS.subject, true);
   const message = field(payload.message, LIMITS.message, false);
 
-  if (!name || !email || !subject || !message || !EMAIL.test(email)) {
+  if (!name || !email || !message || !EMAIL.test(email)) {
     return fail("invalid", 400);
   }
+
+  /*
+   * The qualifiers are additive and can never reject a submission.
+   *
+   * An unrecognised route falls back rather than 400ing, and an unknown choice value
+   * is dropped rather than rejected, so a browser holding a bundle from before this
+   * change keeps delivering. This is the file that silently discarded every enquiry
+   * until 575a390 — it does not get a second way to lose one. An enquiry filed under
+   * the wrong heading is recoverable; an enquiry that 400s is gone.
+   */
+  const route: EnquiryRoute = isRoute(payload.route) ? payload.route : FALLBACK_ROUTE;
+
+  const answers: Record<ChoiceField, string[] | string> = {
+    projectType: choices(payload.projectType, OPTIONS.projectType, MAX_PROJECT_TYPES),
+    budget: choice(payload.budget, OPTIONS.budget),
+    timeline: choice(payload.timeline, OPTIONS.timeline),
+    engagement: choice(payload.engagement, OPTIONS.engagement),
+    heardVia: choice(payload.heardVia, OPTIONS.heardVia),
+  };
+
+  const qualifiers: Array<readonly [string, string]> = [["Route", EN_ROUTE_LABELS[route]]];
+  for (const name_ of ROUTE_FIELDS[route]) {
+    const value = answers[name_];
+    const text = Array.isArray(value)
+      ? value.map((entry) => EN_LABELS[name_][entry]).join(", ")
+      : value
+        ? EN_LABELS[name_][value]
+        : "";
+    if (text) qualifiers.push([EN_FIELD_LABELS[name_], text] as const);
+  }
+
+  // A legacy payload still carries its own subject; it wins, so a stale bundle is
+  // never silently relabelled. Either way the string goes through field() — the
+  // header-injection defence stays on the path unconditionally rather than resting
+  // on an argument about the allow-list.
+  const subject =
+    field(payload.subject, LIMITS.subject, true) ??
+    field(deriveSubject(route, answers), LIMITS.subject, true);
+
+  if (!subject) return fail("invalid", 400);
 
   // Rate limit only after the payload proves well-formed, so a visitor who fumbles
   // the form a few times does not burn their allowance.
@@ -153,7 +252,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendContactMail({ name, email, subject, message, ip });
+    await sendContactMail({ name, email, subject, message, route, qualifiers, ip });
   } catch (error) {
     if (error instanceof MailNotConfiguredError) {
       // Misconfiguration, not a transient fault — say so loudly in the log.
@@ -164,6 +263,6 @@ export async function POST(request: Request) {
     return fail("send_failed", 502);
   }
 
-  console.log(`[contact] delivered enquiry from ${email} (${ip})`);
+  console.log(`[contact] delivered ${route} enquiry from ${email} (${ip})`);
   return NextResponse.json({ ok: true }, { status: 200 });
 }
