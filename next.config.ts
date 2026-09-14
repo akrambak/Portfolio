@@ -96,6 +96,8 @@ const nextConfig: NextConfig = {
       { source: "/portfolio", destination: "/work", permanent: true },
       { source: "/modules", destination: "/work", permanent: true },
       { source: "/themes", destination: "/work", permanent: true },
+      { source: "/freelance", destination: "/hire-me", permanent: true },
+      { source: "/work-with-me", destination: "/hire-me", permanent: true },
     ];
   },
 };

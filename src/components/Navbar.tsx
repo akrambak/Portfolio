@@ -20,6 +20,7 @@ const NAV_LINKS = [
   { href: "/blog", key: "writing" },
   { href: "/about", key: "about" },
   { href: "/contact", key: "contact" },
+  { href: "/hire-me", key: "hire" },
 ] as const;
 
 export default function Navbar() {

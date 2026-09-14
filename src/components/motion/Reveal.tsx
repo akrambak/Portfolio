@@ -4,7 +4,11 @@ import { motion, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
 import { VIEWPORT, dist, dur, ease, staggerParent } from "@/lib/motion";
 
-type Tag = "div" | "section" | "article" | "header" | "li" | "ul" | "p" | "span";
+type Tag =
+  | "div" | "section" | "article" | "header"
+  | "ul" | "ol" | "li"
+  | "dl" | "dt" | "dd"
+  | "p" | "span";
 
 interface RevealProps {
   children: ReactNode;
