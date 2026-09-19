@@ -6,7 +6,8 @@
     "about": "À propos",
     "contact": "Contact",
     "openMenu": "Ouvrir le menu",
-    "closeMenu": "Fermer le menu"
+    "closeMenu": "Fermer le menu",
+    "hire": "Me recruter"
   },
   "hero": {
     "status": "Disponible pour de nouveaux projets",
@@ -140,6 +141,152 @@
         "value": "Gestion de projet de A à Z, ouvert à la critique, présent pour la maintenance"
       }
     }
+  },
+  "hirePage": {
+    "metaTitle": "Me recruter — conformité catalogue UE & visibilité dans les agents IA",
+    "metaDescription": "Le GPSR est déjà appliqué et l'EUDR arrive le 30 décembre 2026. J'audite les catalogues produits PrestaShop et Laravel — exposition réglementaire et lisibilité par les agents IA — puis je construis l'agent qui les corrige, chaque modification étant validée par un humain.",
+    "eyebrow": "Prestations",
+    "title": "Votre catalogue produits est devenu un document légal.",
+    "lede": "La plupart des boutiques européennes le traitent encore comme de la fiche marketing. J'audite les catalogues PrestaShop et Laravel sur ce qu'exige le régulateur et sur ce qu'attendent les agents IA, puis je construis le système qui corrige les deux — chaque modification validée par un humain.",
+    "ctaPrimary": "Réserver un appel de cadrage",
+    "ctaSecondary": "M'écrire plutôt",
+    "problemEyebrow": "Le problème",
+    "problemTitle": "Deux échéances sur le même fichier",
+    "problem1": "Depuis décembre 2024, chaque produit vendu dans l'UE doit comporter une personne responsable identifiée, un identifiant traçable et des informations de sécurité dans la langue du pays de vente — visibles avant l'achat, pas enfouies dans un PDF. Les marketplaces retirent déjà les fiches qui ne les ont pas.",
+    "problem2": "Par ailleurs, et pour des raisons totalement différentes, ce sont exactement ces champs manquants qui font que les assistants d'achat IA recommandent votre concurrent plutôt que vous. Une boutique au catalogue modeste mais aux données structurées propres est remontée. Une boutique au catalogue riche mais lacunaire est ignorée.",
+    "problemKicker": "Un seul fichier. Deux échéances. La plupart des catalogues échouent aux deux — et le travail de correction est le même.",
+    "deadlines": {
+      "gpsr": {
+        "when": "Appliqué depuis déc. 2024",
+        "what": "GPSR",
+        "body": "Phase de contrôle. Personne responsable, identifiant produit et informations de sécurité par langue, sinon la fiche est retirée."
+      },
+      "eudr": {
+        "when": "30 décembre 2026",
+        "what": "EUDR",
+        "body": "Les grands opérateurs d'abord. Les sanctions démarrent à 4 % du chiffre d'affaires réalisé dans l'UE : le problème de qualité de données le plus coûteux de votre feuille de route."
+      },
+      "agents": {
+        "when": "Déjà en cours",
+        "what": "Achat par agents IA",
+        "body": "Une part croissante des commandes commence dans un assistant IA. Des données structurées incomplètes ne sont pas mal classées — elles sont simplement invisibles."
+      }
+    },
+    "offersEyebrow": "Les prestations",
+    "offersTitle": "Trois portes d'entrée",
+    "offersLede": "Un escalier, pas un menu. Chaque marche vous dit si la suivante en vaut la peine — vous n'achetez jamais la grosse prestation sur parole.",
+    "offers": {
+      "audit": {
+        "name": "Audit de catalogue",
+        "timeline": "3 à 5 jours · forfait",
+        "price": "1 500–2 500 €",
+        "body": "J'intègre votre flux produits et je note chaque référence sur deux axes : l'exposition réglementaire (personne responsable, identifiants, avertissements, couverture par langue) et la lisibilité par les agents (les attributs structurés sans lesquels aucune IA d'achat ne peut vous recommander). Vous recevez un rapport par référence et un tableau de bord agrégé montrant précisément quels produits échoueraient à un contrôle aujourd'hui et lesquels sont invisibles pour la recherche IA.",
+        "note": "Aucun accès à vos systèmes : un export de flux suffit. Déduit de la construction si vous poursuivez."
+      },
+      "build": {
+        "name": "Mise en conformité & lisibilité IA",
+        "timeline": "3 à 6 semaines · forfait",
+        "price": "8 000–18 000 €",
+        "body": "Je construis l'agent qui corrige le catalogue et le maintient corrigé. Il lit vos produits, rédige les descriptions, attributs et mentions de sécurité manquants, et place chaque modification proposée dans une file de validation que vous contrôlez. Livré avec un harnais d'évaluation pour que la notation ne dérive pas en silence, et un tableau de bord lisible par votre équipe — ou par votre auditeur.",
+        "note": "Rien n'atteint votre catalogue en production sans qu'un humain clique sur « valider ». C'est l'architecture, pas un réglage. Cession de droits complète, exécution sur votre infrastructure."
+      },
+      "watch": {
+        "name": "Surveillance continue",
+        "timeline": "En continu · 6 mois minimum",
+        "price": "800–2 500 €/mois",
+        "body": "Les catalogues changent, les règles aussi. Les flux fournisseurs évoluent, vous ajoutez des références, et l'EUDR, le passeport numérique de produit et le PPWR arrivent chacun à leur date. Je réaudite à intervalle régulier, je ne remonte que ce qui est nouvellement cassé plutôt que la même liste chaque mois, et j'inclus un tableau de bord mensuel ainsi qu'un nombre convenu de corrections validées.",
+        "note": "Un réaudit permanent, pas un contrat de support. Résiliable à six mois."
+      }
+    },
+    "filterEyebrow": "Périmètre",
+    "filterTitle": "Ce que je ne prends pas",
+    "filterLede": "Annoncer les refus d'emblée nous épargne un appel à tous les deux. Si vous êtes dans cette liste, nous ne sommes pas faits pour travailler ensemble — autant le savoir ici.",
+    "filter": {
+      "rate": "Tarif journalier sous 600 € — c'est une expertise, pas du fullstack généraliste",
+      "unscoped": "« Parlons IA » sans problème précis derrière",
+      "crypto": "Projets crypto et web3 spéculatifs",
+      "rewrite": "Refontes from scratch et migrations de plateforme — je fais fonctionner votre stack actuelle",
+      "onsite": "Travail sur site. Full remote uniquement",
+      "short": "Missions de moins de deux semaines — trop court pour livrer quelque chose que je signerais",
+      "scraping": "Tout ce qui suppose de scraper la boutique d'un concurrent"
+    },
+    "proofEyebrow": "Vérification",
+    "proofTitle": "Vérifiez mon travail avant de me recruter",
+    "proofLede": "Je débute assez récemment sur cette spécialité pour ne pas afficher un mur de logos clients. J'ai autre chose : un système que vous pouvez inspecter — ce qui, pour une décision de conformité, constitue sans doute une meilleure preuve.",
+    "proof": {
+      "ruleset": {
+        "label": "Le référentiel de règles publié",
+        "body": "Chaque règle cite le règlement et l'article dont elle découle. Vous pouvez lire exactement ce que je contrôle, et le contester, avant tout engagement financier."
+      },
+      "corpus": {
+        "label": "Le corpus d'évaluation",
+        "body": "Des fiches produits annotées à la main, contre lesquelles le moteur de notation est testé à chaque commit. Précision et rappel sont reportés séparément, parce qu'une fausse alerte et une violation manquée ne vous coûtent pas du tout la même chose."
+      },
+      "report": {
+        "label": "Résultats agrégés",
+        "body": "Un rapport public sur la conformité des catalogues de boutiques européennes réelles. Si la vôtre fait partie de l'échantillon, je vous le dirai."
+      },
+      "selfHosted": {
+        "label": "Exécutable sur vos propres machines",
+        "body": "Toute la chaîne fonctionne avec un modèle auto-hébergé. Si vos données catalogue n'ont pas le droit de quitter votre infrastructure, elles n'ont pas à le faire."
+      }
+    },
+    "processEyebrow": "Déroulé",
+    "processTitle": "Comment se passe une mission",
+    "stepLabel": "Étape {n}",
+    "process": {
+      "one": {
+        "title": "Appel de cadrage — gratuit, 25 minutes",
+        "body": "Dites-moi votre plateforme, l'ordre de grandeur du nombre de références et les pays où vous vendez. Je vous dis s'il y a un vrai problème, quelle forme prendrait la mission et une fourchette de prix. S'il n'y a rien à corriger, je vous le dis aussi."
+      },
+      "two": {
+        "title": "Audit",
+        "body": "Vous envoyez un export de flux produits — pas d'identifiants, pas d'accès à vos systèmes. Le rapport revient sous cinq jours ouvrés, chaque constat citant le champ fautif pour que vous puissiez le vérifier vous-même."
+      },
+      "three": {
+        "title": "Proposition écrite, sous 48 heures",
+        "body": "Périmètre, livrables, calendrier, prix, et la liste explicite de ce qui est hors périmètre. Un aller-retour de révision inclus."
+      },
+      "four": {
+        "title": "Construction et transfert",
+        "body": "En asynchrone par défaut. Du code fonctionnel sur une branche que vous pouvez récupérer à tout moment, des points Loom deux fois par semaine, pas de daily. Le transfert comprend le code, la documentation et un enregistrement de prise en main, puis deux semaines de support par e-mail."
+      }
+    },
+    "faqEyebrow": "Questions",
+    "faqTitle": "Avant de réserver",
+    "faq": {
+      "compliant": {
+        "q": "Est-ce que cela me rend conforme ?",
+        "a": "Non — et méfiez-vous de quiconque prétend le contraire. Je signale des écarts détectés au regard d'un référentiel publié et versionné, en citant le champ fautif pour que vous puissiez contrôler chaque constat. Quand la donnée est réellement ambiguë, le rapport le dit au lieu de deviner. C'est un audit d'ingénierie, pas un conseil juridique, et cela ne remplace pas votre avocat."
+      },
+      "dataLeaves": {
+        "q": "Mes données catalogue sortent-elles de mes serveurs ?",
+        "a": "Uniquement si vous le souhaitez. La chaîne peut tourner intégralement sur un modèle auto-hébergé, sur votre propre infrastructure : aucune donnée produit ne franchit de frontière ni n'atteint une API tierce. C'est un choix d'architecture, et il coûte un peu plus cher."
+      },
+      "autopilot": {
+        "q": "Une IA va-t-elle réécrire mes fiches sans demander ?",
+        "a": "Non. Chaque modification proposée attend dans une file de validation jusqu'à ce qu'une personne l'approuve. Le système est conçu pour être incapable d'écrire seul dans un catalogue en production — cette contrainte est structurelle, pas une case que quelqu'un pourrait décocher plus tard."
+      },
+      "invent": {
+        "q": "Qu'est-ce qui l'empêche d'inventer une adresse de personne responsable ?",
+        "a": "Il ne peut proposer que du contenu déductible des données que vous avez fournies. Quand la donnée source manque, vous obtenez une alerte — jamais une valeur inventée mais crédible. Cette règle compte davantage ici qu'ailleurs : une invention formulée avec assurance devient un problème juridique, pas un simple embarras."
+      },
+      "versions": {
+        "q": "Quelles plateformes et quelles versions ?",
+        "a": "PrestaShop 1.6 à 8.x, Laravel, et toute stack capable d'exporter un flux produits. L'audit lui-même est indépendant de la version puisqu'il lit un flux et non votre base de données."
+      },
+      "nda": {
+        "q": "Signez-vous des NDA ?",
+        "a": "Oui. Un accord de confidentialité mutuel standard, envoyé avant l'appel de cadrage si vous le souhaitez."
+      },
+      "ip": {
+        "q": "À qui appartient le code ?",
+        "a": "À vous. Cession de droits complète — tout ce que j'écris dans votre base de code vous revient. Je travaille seul par choix et je ne sous-traite pas."
+      }
+    },
+    "closingEyebrow": "Prochaine étape",
+    "closingTitle": "Pas sûr que cela vous concerne ?",
+    "closingBody": "Envoyez-moi un export de votre flux produits et je vous dis en une phrase si vous avez un problème qui mérite d'être payé pour être corrigé. Sans appel, sans engagement, et je vous dirai si la réponse est non."
   },
   "skillsSection": {
     "title": "Stack"

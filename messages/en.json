@@ -6,7 +6,8 @@
     "about": "About",
     "contact": "Contact",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "hire": "Hire me"
   },
   "hero": {
     "status": "Available for new projects",
@@ -140,6 +141,152 @@
         "value": "A-to-Z project management, open to challenge, and around for the maintenance"
       }
     }
+  },
+  "hirePage": {
+    "metaTitle": "Hire me — EU catalogue compliance & AI-shopping readiness",
+    "metaDescription": "GPSR enforcement is live and EUDR lands 30 December 2026. I audit PrestaShop and Laravel product catalogues for regulatory exposure and AI-shopping visibility, then build the agent that fixes them — with a human approving every change.",
+    "eyebrow": "Engagement",
+    "title": "Your product catalogue is now a legal document.",
+    "lede": "Most EU stores still treat it like marketing copy. I audit PrestaShop and Laravel catalogues for what regulators require and what AI shopping agents need, then build the system that fixes both — with a human approving every single change.",
+    "ctaPrimary": "Book a scope call",
+    "ctaSecondary": "Email me instead",
+    "problemEyebrow": "The problem",
+    "problemTitle": "Two deadlines landed on the same file",
+    "problem1": "Since December 2024, every product you sell in the EU needs a named Responsible Person, a traceable identifier, and safety information in the language of the country you are selling into — visible before purchase, not buried in a PDF. Marketplaces already delist listings that do not have it.",
+    "problem2": "Separately, and for completely different reasons, those same missing fields are why AI shopping assistants recommend your competitor instead of you. A store with a modest catalogue and clean structured data gets surfaced. A store with a rich catalogue and gaps gets skipped.",
+    "problemKicker": "One artefact. Two deadlines. Most catalogues fail both — and the work to fix them is the same work.",
+    "deadlines": {
+      "gpsr": {
+        "when": "Live since Dec 2024",
+        "what": "GPSR",
+        "body": "Enforcement phase. Responsible Person, product identifier, and per-language safety information, or the listing comes down."
+      },
+      "eudr": {
+        "when": "30 December 2026",
+        "what": "EUDR",
+        "body": "Large operators first. Penalties start at 4% of EU-wide turnover, which makes this the most expensive data-quality problem on your roadmap."
+      },
+      "agents": {
+        "when": "Already happening",
+        "what": "Agentic shopping",
+        "body": "A growing share of orders now begins inside an AI assistant. Incomplete structured data does not rank badly — it is simply invisible."
+      }
+    },
+    "offersEyebrow": "The work",
+    "offersTitle": "Three ways in",
+    "offersLede": "A ladder, not a menu. Each rung tells you whether the next one is worth it, so you never buy the big thing on faith.",
+    "offers": {
+      "audit": {
+        "name": "Catalogue Audit",
+        "timeline": "3–5 days · fixed scope",
+        "price": "€1,500–2,500",
+        "body": "I ingest your product feed and score every SKU on two axes: regulatory exposure (Responsible Person, identifiers, warnings, per-language coverage) and agent-readiness (the structured attributes AI shopping surfaces need to recommend you at all). You get a per-SKU report and an aggregate scorecard showing exactly which products would fail enforcement today and which are invisible to AI search.",
+        "note": "No system access required — a feed export is enough. Credited against the build if you go ahead."
+      },
+      "build": {
+        "name": "Compliance & Agent-Readiness Build",
+        "timeline": "3–6 weeks · fixed scope",
+        "price": "€8,000–18,000",
+        "body": "I build the agent that fixes the catalogue and keeps it fixed. It reads your products, drafts the missing descriptions, attributes and safety text, and routes every proposed change into an approval queue you control. Ships with an evaluation harness so the scoring cannot silently drift, and a dashboard your team — or your auditor — can actually read.",
+        "note": "Nothing reaches your live catalogue without a human clicking approve. That is the architecture, not a setting. Work-for-hire, runs on your infrastructure."
+      },
+      "watch": {
+        "name": "Run & Watch",
+        "timeline": "Ongoing · 6-month minimum",
+        "price": "€800–2,500/mo",
+        "body": "Catalogues change and so do the rules. Supplier feeds update, you add SKUs, and EUDR, the Digital Product Passport and PPWR all arrive on a schedule. I re-audit on a cadence, surface only what is newly broken rather than the same list every month, and include a monthly scorecard plus an agreed number of approved fixes.",
+        "note": "A standing re-audit, not a support contract. Cancellable at six months."
+      }
+    },
+    "filterEyebrow": "Scope",
+    "filterTitle": "What I don't take on",
+    "filterLede": "Leading with the no's saves us both a call. If you are on this list, we are not a fit, and I would rather you found that out here.",
+    "filter": {
+      "rate": "Day rates under €600 — this is specialist work, not general fullstack",
+      "unscoped": "\"Let's talk about AI\" with no specific problem behind it",
+      "crypto": "Crypto and web3 speculative projects",
+      "rewrite": "Greenfield rewrites and platform migrations — I make your current stack work",
+      "onsite": "On-site work. Fully remote only",
+      "short": "Engagements under two weeks — not long enough to ship anything I would sign",
+      "scraping": "Anything requiring me to scrape a competitor's storefront"
+    },
+    "proofEyebrow": "Diligence",
+    "proofTitle": "Check my work before you hire me",
+    "proofLede": "I am early enough in this practice that I do not have a wall of client logos. What I have instead is a system you can inspect — which, for a compliance decision, is arguably the better evidence.",
+    "proof": {
+      "ruleset": {
+        "label": "The published ruleset",
+        "body": "Every rule cites the regulation and article it derives from. You can read exactly what I check, and disagree with it, before any money changes hands."
+      },
+      "corpus": {
+        "label": "The evaluation corpus",
+        "body": "Hand-labelled product records the scoring engine is regression-tested against on every commit. Precision and recall are reported separately, because a false alarm and a missed violation fail you in very different ways."
+      },
+      "report": {
+        "label": "Aggregate findings",
+        "body": "A published report on catalogue compliance across real EU storefronts. If your store is in the sample, I will tell you."
+      },
+      "selfHosted": {
+        "label": "It can run on your own hardware",
+        "body": "The whole pipeline works against a self-hosted model. If your catalogue data is not allowed to leave your infrastructure, it does not have to."
+      }
+    },
+    "processEyebrow": "Process",
+    "processTitle": "How an engagement runs",
+    "stepLabel": "Step {n}",
+    "process": {
+      "one": {
+        "title": "Scope call — free, 25 minutes",
+        "body": "Tell me your platform, roughly how many SKUs, and which countries you sell into. I will tell you whether there is a real problem here, what shape the engagement would take, and a price range. If there is nothing to fix, I will say so."
+      },
+      "two": {
+        "title": "Audit",
+        "body": "You send a product feed export — no credentials, no system access. The scorecard comes back within five working days, with the offending field quoted on every finding so you can verify each one yourself."
+      },
+      "three": {
+        "title": "Written proposal, within 48 hours",
+        "body": "Scope, deliverables, timeline, price, and an explicit list of what is out of scope. One round of revisions included."
+      },
+      "four": {
+        "title": "Build and handover",
+        "body": "Async by default. Working code on a branch you can pull at any time, Loom updates twice a week, no daily standups. Handover is code plus docs plus a recorded walkthrough, and two weeks of email support after."
+      }
+    },
+    "faqEyebrow": "Questions",
+    "faqTitle": "Before you book",
+    "faq": {
+      "compliant": {
+        "q": "Does this make me compliant?",
+        "a": "No — and be suspicious of anyone who says it does. I report detected gaps against a published, versioned ruleset, with the offending field quoted so you can check every finding. Where the data is genuinely ambiguous the report says so rather than guessing. It is an engineering audit, not legal advice, and it does not replace your counsel."
+      },
+      "dataLeaves": {
+        "q": "Does my catalogue data leave my servers?",
+        "a": "Only if you want it to. The pipeline can run entirely against a self-hosted model on your own infrastructure, so no product data crosses a border or reaches a third-party API. It is a build-time choice and it costs a little more."
+      },
+      "autopilot": {
+        "q": "Will an AI rewrite my product copy without asking?",
+        "a": "No. Every proposed change sits in an approval queue until a person approves it. The system is built so that it cannot write to a live catalogue on its own — that constraint is structural, not a checkbox someone could turn off later."
+      },
+      "invent": {
+        "q": "What stops it inventing a Responsible Person address?",
+        "a": "It can only propose content derivable from data you supplied. Where the source data is missing, you get a flag — never a plausible-looking fabricated value. That rule matters more here than almost anywhere else, because a confident invention is a legal problem rather than an embarrassment."
+      },
+      "versions": {
+        "q": "Which platforms and versions?",
+        "a": "PrestaShop 1.6 through 8.x, Laravel, and any stack that can export a product feed. The audit itself is version-independent because it reads a feed rather than your database."
+      },
+      "nda": {
+        "q": "Do you sign NDAs?",
+        "a": "Yes. A standard mutual NDA, sent over before the scope call if you want one."
+      },
+      "ip": {
+        "q": "Who owns the code?",
+        "a": "You do. Work-for-hire — everything I write inside your codebase is yours. I am solo by design and do not sub-contract."
+      }
+    },
+    "closingEyebrow": "Next step",
+    "closingTitle": "Not sure whether any of this applies to you?",
+    "closingBody": "Send me a product feed export and I will tell you in a sentence whether you have a problem worth paying to fix. No call required, no obligation, and I will say so if the answer is no."
   },
   "skillsSection": {
     "title": "Stack"
