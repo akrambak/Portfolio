@@ -12,6 +12,7 @@ const PAGES: Array<{ path: string; changeFrequency: Frequency; priority: number 
   { path: "/blog", changeFrequency: "weekly", priority: 0.9 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.8 },
   { path: "/about", changeFrequency: "yearly", priority: 0.7 },
+  { path: "/privacy", changeFrequency: "yearly", priority: 0.2 },
 ];
 
 /**

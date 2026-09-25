@@ -18,6 +18,13 @@ export interface SiteConfig {
     linkedin: string | null;
     calendly: string | null;
   };
+  /** Shown on /privacy when set. */
+  legal: {
+    /** The controller's postal address. GDPR asks for contact details; email alone is the minimum. */
+    postalAddress: string | null;
+    /** Who hosts the server, e.g. "Hetzner Online GmbH, Germany". */
+    hosting: string | null;
+  };
 }
 
 export const site: SiteConfig = {
@@ -33,6 +40,12 @@ export const site: SiteConfig = {
     github: null,
     linkedin: null,
     calendly: null,
+  },
+
+  // TODO: fill these in for the privacy policy. Each line is hidden until set.
+  legal: {
+    postalAddress: null,
+    hosting: null,
   },
 };
 

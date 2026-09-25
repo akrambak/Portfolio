@@ -430,12 +430,14 @@
     "rateLimited": "Trop de messages depuis cette connexion. Merci de réessayer plus tard.",
     "unavailable": "Le formulaire de contact est hors service. Merci de m'écrire directement.",
     "sendFailed": "Le serveur de messagerie l'a refusé. Merci de m'écrire directement.",
-    "unexpectedError": "Une erreur est survenue. Merci de réessayer."
+    "unexpectedError": "Une erreur est survenue. Merci de réessayer.",
+    "privacyNote": "Vos coordonnées servent uniquement à vous répondre. <link>Comment je traite vos données</link>."
   },
   "footer": {
     "blurb": "Développeur fullstack, je construis des produits augmentés par l'IA sur huit ans de livraison Laravel, PrestaShop et Flutter.",
     "copyright": "Tous droits réservés.",
-    "cookieSettings": "Gestion des cookies"
+    "cookieSettings": "Gestion des cookies",
+    "privacy": "Confidentialité"
   },
   "notFound": {
     "title": "Page introuvable",
@@ -489,6 +491,7 @@
     "analyticsTitle": "Mesure d'audience",
     "analyticsBody": "Google Analytics et Microsoft Clarity : quelles pages sont lues et où les visiteurs décrochent.",
     "marketingTitle": "Publicité",
-    "marketingBody": "Google Ads et Meta : mesurer si les annonces mènent à des demandes, et diffuser des annonces aux anciens visiteurs."
+    "marketingBody": "Google Ads et Meta : mesurer si les annonces mènent à des demandes, et diffuser des annonces aux anciens visiteurs.",
+    "learnMore": "Politique de confidentialité"
   }
 }

@@ -8,6 +8,7 @@ import { CornerBrackets } from "@/components/schematic/CornerBrackets";
 import { FigureLabel } from "@/components/schematic/FigureLabel";
 import { Rule } from "@/components/schematic/Rule";
 import { ArrowRight } from "@/components/ui/CTALink";
+import { Link } from "@/i18n/navigation";
 import { ChoiceGroup } from "@/components/contact/ChoiceGroup";
 import { RouteTiles } from "@/components/contact/RouteTiles";
 import {
@@ -662,6 +663,23 @@ export function ContactRouter({
                     : t("contactSection.send")}
                   {!submitting && <ArrowRight />}
                 </button>
+
+                {/*
+                  GDPR wants the notice where the data is collected, not only in a
+                  footer link: one line, pointing at the full policy.
+                */}
+                <p className="font-mono text-xs leading-relaxed text-ink-faint">
+                  {t.rich("contactSection.privacyNote", {
+                    link: (chunks) => (
+                      <Link
+                        href="/privacy"
+                        className="text-accent underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+                      >
+                        {chunks}
+                      </Link>
+                    ),
+                  })}
+                </p>
 
                 {/* One live region for the submit outcome, as before. */}
                 <div

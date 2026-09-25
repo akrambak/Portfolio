@@ -10,6 +10,7 @@ import {
   type ConsentState,
 } from "@/lib/consent";
 import { dur, ease } from "@/lib/motion";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Accept and Reject carry identical weight and sit side by side — the CNIL's line is
@@ -89,7 +90,15 @@ export function ConsentBanner() {
       >
         {t("title")}
       </h2>
-      <p className="mt-3 text-sm leading-relaxed text-ink-muted">{t("body")}</p>
+      <p className="mt-3 text-sm leading-relaxed text-ink-muted">
+        {t("body")}{" "}
+        <Link
+          href="/privacy"
+          className="text-accent underline decoration-hairline-strong underline-offset-4 hover:text-ink"
+        >
+          {t("learnMore")}
+        </Link>
+      </p>
 
       {customising && (
         <fieldset className="mt-5 space-y-3 border-t border-hairline pt-4">

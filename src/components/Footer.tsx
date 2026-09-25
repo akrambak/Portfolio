@@ -59,6 +59,12 @@ export default function Footer() {
             <p className="font-mono text-xs text-ink-faint">
               © {new Date().getFullYear()} {site.name}. {t("footer.copyright")}
             </p>
+            <Link
+              href="/privacy"
+              className="flex min-h-11 items-center font-mono text-xs text-ink-faint transition-colors duration-200 hover:text-ink"
+            >
+              {t("footer.privacy")}
+            </Link>
             <ConsentSettingsButton label={t("footer.cookieSettings")} />
           </div>
 
