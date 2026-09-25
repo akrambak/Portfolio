@@ -468,5 +468,11 @@
     "capabilities": "matrice de compétences",
     "writing": "notes de production",
     "testimonials": "retours clients"
+  },
+  "meta": {
+    "title": "Akram Bakhouche — Ingénieur fullstack augmenté par l'IA",
+    "description": "Ingénieur fullstack freelance : agents Claude et pipelines LLM intégrés à vos applications Laravel, PrestaShop et Flutter, après huit ans de livraisons en production.",
+    "jobTitle": "Ingénieur fullstack augmenté par l'IA",
+    "home": "Accueil"
   }
 }

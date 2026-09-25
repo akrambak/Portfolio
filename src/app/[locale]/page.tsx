@@ -1,4 +1,7 @@
-import { getLocale, getTranslations } from "next-intl/server";
+import type { Metadata } from "next";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { Locale } from "@/i18n/config";
+import { pageMetadata } from "@/lib/seo/metadata";
 import { getSortedPostsData } from "@/lib/mdxUtils";
 import { FEATURED_WORK } from "@/content/work";
 import { Hero } from "@/components/home/Hero";
@@ -16,9 +19,20 @@ import { configured, site } from "@/config/site";
 
 const STATS = ["years", "cost", "languages"] as const;
 
-export default async function HomePage() {
+type PageProps = { params: Promise<{ locale: Locale }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  // No `title`: the layout's default is the home page's title, and restating it
+  // here would run it through the "%s — name" template a second time.
+  return pageMetadata({ locale, path: "/", description: t("description") });
+}
+
+export default async function HomePage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations();
-  const locale = await getLocale();
   const posts = getSortedPostsData().slice(0, 3);
 
   const primaryHref = configured(site.links.calendly) ? site.links.calendly : "/contact";

@@ -91,14 +91,23 @@ const nextConfig: NextConfig = {
 
   // Portfolio / Modules / Themes collapsed into a single filterable /work grid.
   // Permanent so existing inbound links and search results follow.
+  // Each alias twice: unprefixed for English and under /fr. (An optional `:lang?`
+  // segment in the destination 500s when it is absent, so they are spelled out.)
   async redirects() {
-    return [
-      { source: "/portfolio", destination: "/work", permanent: true },
-      { source: "/modules", destination: "/work", permanent: true },
-      { source: "/themes", destination: "/work", permanent: true },
-      { source: "/freelance", destination: "/hire-me", permanent: true },
-      { source: "/work-with-me", destination: "/hire-me", permanent: true },
+    const aliases: Array<[string, string]> = [
+      ["/portfolio", "/work"],
+      ["/modules", "/work"],
+      ["/themes", "/work"],
+      ["/freelance", "/hire-me"],
+      ["/work-with-me", "/hire-me"],
     ];
+    return ["", "/fr"].flatMap((prefix) =>
+      aliases.map(([from, to]) => ({
+        source: `${prefix}${from}`,
+        destination: `${prefix}${to}`,
+        permanent: true,
+      })),
+    );
   },
 };
 

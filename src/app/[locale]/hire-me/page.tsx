@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { Locale } from "@/i18n/config";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { breadcrumbs, faqPage, serviceCatalog } from "@/lib/seo/schema";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
@@ -24,26 +28,54 @@ const booking = configured(site.links.calendly)
   ? { href: site.links.calendly, external: true }
   : { href: "/contact", external: false };
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations();
-  return {
+type PageProps = { params: Promise<{ locale: Locale }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale });
+  return pageMetadata({
+    locale,
+    path: "/hire-me",
     title: t("hirePage.metaTitle"),
     description: t("hirePage.metaDescription"),
-    alternates: { canonical: `${site.url}/hire-me` },
-    openGraph: {
-      title: t("hirePage.metaTitle"),
-      description: t("hirePage.metaDescription"),
-      url: `${site.url}/hire-me`,
-      type: "website",
-    },
-  };
+  });
 }
 
-export default async function HireMePage() {
+export default async function HireMePage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations();
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      <JsonLd
+        data={serviceCatalog(
+          locale,
+          "/hire-me",
+          t("hirePage.offersTitle"),
+          OFFERS.map((key) => ({
+            name: t(`hirePage.offers.${key}.name`),
+            description: t(`hirePage.offers.${key}.body`),
+            price: t(`hirePage.offers.${key}.price`),
+          })),
+        )}
+      />
+      {/*
+        Google has limited FAQ rich results to a handful of authoritative sites since
+        2023, so this is not for a SERP feature. It is for the answer engines — AI
+        Overviews, Perplexity, ChatGPT search — which read FAQPage as clean Q&A pairs.
+      */}
+      <JsonLd
+        data={faqPage(
+          FAQ.map((key) => ({ q: t(`hirePage.faq.${key}.q`), a: t(`hirePage.faq.${key}.a`) })),
+        )}
+      />
+      <JsonLd
+        data={breadcrumbs(locale, [
+          { name: t("meta.home"), path: "/" },
+          { name: t("hirePage.metaTitle"), path: "/hire-me" },
+        ])}
+      />
       <PageHeader
         eyebrow={t("hirePage.eyebrow")}
         title={t("hirePage.title")}

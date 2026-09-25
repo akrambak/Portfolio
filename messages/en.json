@@ -468,5 +468,11 @@
     "capabilities": "capability matrix",
     "writing": "notes from production",
     "testimonials": "client record"
+  },
+  "meta": {
+    "title": "Akram Bakhouche — AI-augmented fullstack engineer",
+    "description": "Fullstack engineer shipping AI-augmented products: Claude-powered agents and LLM pipelines on top of eight years of Laravel, PrestaShop and Flutter delivery.",
+    "jobTitle": "AI-augmented fullstack engineer",
+    "home": "Home"
   }
 }

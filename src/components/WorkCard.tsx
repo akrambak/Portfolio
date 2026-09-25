@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { WorkItem } from "@/content/work";
 import { PlateHover } from "@/components/PlateHover";
 import { SchematicPlate } from "@/components/schematic/SchematicPlate";

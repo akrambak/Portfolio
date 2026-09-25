@@ -1,20 +1,25 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { motion, useReducedMotion } from "framer-motion";
 import { locales, localeNames, type Locale } from "@/i18n/config";
 
 export default function LanguageSwitcher() {
   const activeLocale = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
   const reduced = useReducedMotion();
   const [isPending, startTransition] = useTransition();
 
+  // Navigates to the same page under the other locale's URL rather than flipping
+  // a cookie in place — each language now has its own indexable address. The
+  // middleware still writes the `locale` cookie on the way through.
   const setLocale = (locale: Locale) => {
-    document.cookie = `locale=${locale};path=/;max-age=31536000;samesite=lax`;
-    startTransition(() => router.refresh());
+    startTransition(() => {
+      router.replace(pathname, { locale, scroll: false });
+    });
   };
 
   return (

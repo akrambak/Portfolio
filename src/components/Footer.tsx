@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { useTranslations } from "next-intl";
 import { activeSocials, configured, site } from "@/config/site";

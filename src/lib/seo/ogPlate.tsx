@@ -1,9 +1,6 @@
 import { ImageResponse } from "next/og";
-import { site } from "@/config/site";
 
-export const alt = `${site.name} — AI-augmented fullstack engineer`;
-export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+export const OG_SIZE = { width: 1200, height: 630 };
 
 const PAPER = "#fbfaf7";
 const INK = "#14213d";
@@ -19,9 +16,24 @@ const FAINT = "#6b7280";
  * Satori's gradient support is narrower than a browser's, and 18 divs is
  * cheaper than debugging it.
  */
-export default async function OpenGraphImage() {
+export interface PlateText {
+  /** Small caps line top-left. */
+  kicker: string;
+  /** Headline, with an optional underlined middle part in blueprint blue. */
+  before: string;
+  emphasis?: string;
+  after?: string;
+  /** Bottom strip, left and right. */
+  footer: string;
+  figure: string;
+  /** Long headlines (blog titles) drop the type size so three lines still fit. */
+  compact?: boolean;
+}
+
+export function renderPlate({ kicker, before, emphasis, after, footer, figure, compact }: PlateText) {
   const verticals = Array.from({ length: 11 }, (_, i) => (i + 1) * 100);
   const horizontals = Array.from({ length: 5 }, (_, i) => (i + 1) * 105);
+  const size = compact ? 54 : 70;
 
   return new ImageResponse(
     (
@@ -89,23 +101,19 @@ export default async function OpenGraphImage() {
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <div style={{ width: 12, height: 12, background: REDLINE }} />
           <div style={{ color: FAINT, fontSize: 24, letterSpacing: 4 }}>
-            {site.name.toUpperCase()}
+            {kicker.toUpperCase()}
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ color: INK, fontSize: 70, lineHeight: 1.08 }}>
-            I design and ship
-          </div>
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ color: BLUEPRINT, fontSize: 70, lineHeight: 1.08 }}>
-              AI-augmented
+          <div style={{ color: INK, fontSize: size, lineHeight: 1.08 }}>{before}</div>
+          {emphasis && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ color: BLUEPRINT, fontSize: size, lineHeight: 1.08 }}>{emphasis}</div>
+              <div style={{ width: 470, height: 3, background: REDLINE, marginTop: 4 }} />
             </div>
-            <div style={{ width: 470, height: 3, background: REDLINE, marginTop: 4 }} />
-          </div>
-          <div style={{ color: INK, fontSize: 70, lineHeight: 1.08 }}>
-            fullstack products.
-          </div>
+          )}
+          {after && <div style={{ color: INK, fontSize: size, lineHeight: 1.08 }}>{after}</div>}
         </div>
 
         {/* title block strip */}
@@ -120,11 +128,11 @@ export default async function OpenGraphImage() {
             fontSize: 22,
           }}
         >
-          <div style={{ display: "flex" }}>Claude SDK · Laravel · Flutter · PrestaShop</div>
-          <div style={{ display: "flex", color: BLUEPRINT }}>FIG. 01</div>
+          <div style={{ display: "flex" }}>{footer}</div>
+          <div style={{ display: "flex", color: BLUEPRINT }}>{figure}</div>
         </div>
       </div>
     ),
-    size,
+    OG_SIZE,
   );
 }
