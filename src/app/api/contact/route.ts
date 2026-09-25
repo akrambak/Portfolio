@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { MailNotConfiguredError, sendContactMail } from "@/lib/mail";
+import { sendMetaLead } from "@/lib/metaCapi";
+import { leadValue } from "@/lib/analytics/leadValue";
+import { CONSENT_COOKIE, parseConsent } from "@/lib/consent";
 import {
   EN_FIELD_LABELS,
   EN_LABELS,
@@ -301,5 +304,36 @@ export async function POST(request: Request) {
   }
 
   console.log(`[contact] delivered ${route} enquiry from ${email} (${ip})`);
+
+  /*
+   * The ad platforms hear about the lead only after the mail is out, and never on the
+   * response path: not awaited, errors logged and swallowed. A slow or failing Graph
+   * API must not be able to delay, or worse fail, an enquiry that was delivered —
+   * this route has lost enquiries before (575a390) and does not get a new way to.
+   * The long-lived PM2 process lets the promise finish after the response is sent.
+   *
+   * Only with marketing consent, read from the consent cookie on this request — the
+   * same cookie the banner writes, so there is no second claim to trust.
+   */
+  const consentRaw = request.headers
+    .get("cookie")
+    ?.split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${CONSENT_COOKIE}=`))
+    ?.slice(CONSENT_COOKIE.length + 1);
+  if (parseConsent(consentRaw)?.marketing) {
+    const budget = typeof answers.budget === "string" ? answers.budget : undefined;
+    void sendMetaLead({
+      eventId: payload.event_id,
+      email,
+      ip,
+      userAgent: request.headers.get("user-agent"),
+      cookies: request.headers.get("cookie"),
+      referer: request.headers.get("referer"),
+      value: leadValue(route, budget),
+      route,
+    }).catch((error) => console.warn("[contact] Meta CAPI:", error instanceof Error ? error.message : error));
+  }
+
   return NextResponse.json({ ok: true }, { status: 200 });
 }

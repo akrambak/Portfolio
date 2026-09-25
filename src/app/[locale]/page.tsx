@@ -157,11 +157,13 @@ export default async function HomePage({ params }: PageProps) {
               <CTALink
                 href={primaryHref as string}
                 external={configured(site.links.calendly)}
+                trackId="start_project"
+                trackLocation="home_closing"
               >
                 {t("cta.primary")}
                 <ArrowRight />
               </CTALink>
-              <CTALink href="/work" variant="ghost">
+              <CTALink href="/work" variant="ghost" trackId="view_work" trackLocation="home_closing">
                 {t("cta.secondary")}
               </CTALink>
             </div>

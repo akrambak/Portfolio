@@ -434,7 +434,8 @@
   },
   "footer": {
     "blurb": "Développeur fullstack, je construis des produits augmentés par l'IA sur huit ans de livraison Laravel, PrestaShop et Flutter.",
-    "copyright": "Tous droits réservés."
+    "copyright": "Tous droits réservés.",
+    "cookieSettings": "Gestion des cookies"
   },
   "notFound": {
     "title": "Page introuvable",
@@ -474,5 +475,20 @@
     "description": "Ingénieur fullstack freelance : agents Claude et pipelines LLM intégrés à vos applications Laravel, PrestaShop et Flutter, après huit ans de livraisons en production.",
     "jobTitle": "Ingénieur fullstack augmenté par l'IA",
     "home": "Accueil"
+  },
+  "consent": {
+    "title": "Cookies",
+    "body": "J'utilise des outils de mesure d'audience pour savoir quelles pages amènent des clients, et des cookies publicitaires pour mesurer mes campagnes. Rien d'optionnel ne se charge sans votre accord, et vous pouvez changer d'avis à tout moment depuis le pied de page.",
+    "accept": "Tout accepter",
+    "reject": "Tout refuser",
+    "customise": "Choisir ce que j'autorise",
+    "save": "Enregistrer mes choix",
+    "alwaysOn": "Toujours actif",
+    "necessaryTitle": "Strictement nécessaires",
+    "necessaryBody": "Langue, thème et mémorisation de ce choix. Aucun suivi.",
+    "analyticsTitle": "Mesure d'audience",
+    "analyticsBody": "Google Analytics et Microsoft Clarity : quelles pages sont lues et où les visiteurs décrochent.",
+    "marketingTitle": "Publicité",
+    "marketingBody": "Google Ads et Meta : mesurer si les annonces mènent à des demandes, et diffuser des annonces aux anciens visiteurs."
   }
 }

@@ -25,6 +25,8 @@ import {
   type ChoiceField,
   type EnquiryRoute,
 } from "@/lib/enquiry";
+import { newEventId, sha256Email, track } from "@/lib/analytics/events";
+import { leadValue } from "@/lib/analytics/leadValue";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -150,8 +152,18 @@ export function ContactRouter({
     clearError(field);
   };
 
+  // form_start fires once, on the first focus inside the form — the moment a visitor
+  // moves from reading to writing, which is the drop-off the funnel report is about.
+  const started = useRef(false);
+  const handleFocus = () => {
+    if (started.current) return;
+    started.current = true;
+    track("form_start", { lead_route: route });
+  };
+
   const handleRoute = (next: EnquiryRoute) => {
     setRoute(next);
+    track("form_route_select", { lead_route: next });
     setFieldErrors({});
     // Arrowing across routes silently rewrites a chunk of the DOM; without this the change is
     // inaudible. Focus is deliberately NOT moved — the radio holds it, and stealing it would
@@ -221,6 +233,11 @@ export function ContactRouter({
     const payload: Record<string, unknown> = { route, ...formData };
     for (const field of fields) payload[field] = choices[field];
 
+    // One id for the browser's generate_lead and the server's Conversions API call, so
+    // Meta counts the lead once. The server decides on consent from the cookie itself.
+    const eventId = newEventId();
+    payload.event_id = eventId;
+
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
@@ -230,17 +247,56 @@ export function ContactRouter({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        track("form_error", {
+          lead_route: route,
+          error_code: String(errorData?.code ?? response.status),
+        });
         throw new Error(messageForCode(errorData?.code));
       }
 
       setStatus("success");
+      // The API answers a tripped honeypot with a 200 too; a bot is not a lead.
+      if (!formData.company.trim()) reportLead(route, eventId);
     } catch (caught: unknown) {
+      // fetch itself rejects with a TypeError when the request never got an answer.
+      if (caught instanceof TypeError) {
+        track("form_error", { lead_route: route, error_code: "network" });
+      }
       let message = t("contactSection.unexpectedError");
       if (caught instanceof Error) message = caught.message;
       else if (typeof caught === "string") message = caught;
       setError(message);
       setStatus("error");
     }
+  };
+
+  /**
+   * Reported after the receipt is on screen, never before: hashing is async, and the
+   * visitor's confirmation must not wait on analytics. Fields a route did not ask are
+   * left out, the same rule as the payload.
+   */
+  const reportLead = (leadRoute: EnquiryRoute, eventId: string) => {
+    const asked = new Set<ChoiceField>(fields);
+    const pick = (field: ChoiceField) => {
+      if (!asked.has(field)) return undefined;
+      const value = choices[field];
+      return Array.isArray(value) ? value.join(",") || undefined : value || undefined;
+    };
+
+    void sha256Email(formData.email).then((hash) => {
+      track("generate_lead", {
+        lead_route: leadRoute,
+        value: leadValue(leadRoute, pick("budget")),
+        currency: "EUR",
+        event_id: eventId,
+        project_type: pick("projectType"),
+        budget: pick("budget"),
+        timeline: pick("timeline"),
+        engagement: pick("engagement"),
+        heard_via: pick("heardVia"),
+        ...(hash ? { user_data: { sha256_email_address: hash } } : {}),
+      });
+    });
   };
 
   const reset = () => {
@@ -430,6 +486,7 @@ export function ContactRouter({
               <form
                 ref={formRef}
                 onSubmit={handleSubmit}
+                onFocus={handleFocus}
                 noValidate
                 aria-busy={submitting}
                 className="mt-8 space-y-6"

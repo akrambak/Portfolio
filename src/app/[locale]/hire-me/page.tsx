@@ -83,12 +83,23 @@ export default async function HireMePage({ params }: PageProps) {
       />
 
       <Reveal className="mb-20 flex flex-wrap gap-3">
-        <CTALink href={booking.href} external={booking.external}>
+        <CTALink
+          href={booking.href}
+          external={booking.external}
+          trackId="hire_book_call"
+          trackLocation="hire_header"
+        >
           {t("hirePage.ctaPrimary")}
           <ArrowRight />
         </CTALink>
         {configured(site.email) && (
-          <CTALink href={`mailto:${site.email}`} variant="ghost" external>
+          <CTALink
+            href={`mailto:${site.email}`}
+            variant="ghost"
+            external
+            trackId="hire_email"
+            trackLocation="hire_header"
+          >
             {site.email}
           </CTALink>
         )}
@@ -290,12 +301,23 @@ export default async function HireMePage({ params }: PageProps) {
           {t("hirePage.closingBody")}
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <CTALink href={booking.href} external={booking.external}>
+          <CTALink
+            href={booking.href}
+            external={booking.external}
+            trackId="hire_book_call"
+            trackLocation="hire_closing"
+          >
             {t("hirePage.ctaPrimary")}
             <ArrowRight />
           </CTALink>
           {configured(site.email) && (
-            <CTALink href={`mailto:${site.email}`} variant="ghost" external>
+            <CTALink
+              href={`mailto:${site.email}`}
+              variant="ghost"
+              external
+              trackId="hire_email"
+              trackLocation="hire_closing"
+            >
               {t("hirePage.ctaSecondary")}
             </CTALink>
           )}

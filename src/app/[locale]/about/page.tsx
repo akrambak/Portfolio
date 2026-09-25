@@ -149,7 +149,7 @@ export default async function AboutPage({ params }: PageProps) {
           </Reveal>
 
           <Reveal>
-            <CTALink href="/contact">
+            <CTALink href="/contact" trackId="start_project" trackLocation="about">
               {t("cta.primary")}
               <ArrowRight />
             </CTALink>

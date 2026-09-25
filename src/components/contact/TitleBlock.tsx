@@ -154,7 +154,7 @@ export function TitleBlock({
           {bookBody && (
             <p className="mb-5 max-w-[46ch] text-sm leading-relaxed text-ink-muted">{bookBody}</p>
           )}
-          <CTALink href={calendly} external>
+          <CTALink href={calendly} external trackId="book_call" trackLocation="contact">
             {bookCta}
             <ArrowRight />
           </CTALink>

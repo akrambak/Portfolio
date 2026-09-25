@@ -28,17 +28,48 @@ const nextConfig: NextConfig = {
   // server and could set these, but then they live on the VPS instead of in the
   // repo, where a redeploy to anywhere else quietly loses them.
   async headers() {
+    // Every third-party origin, grouped by the tag that needs it. All of them load
+    // through GTM and only after consent (see src/lib/consent.ts) — the CSP is the
+    // second fence: a tag someone adds in the GTM UI that is not listed here is
+    // blocked, which is the point. Add an origin here in the same change as the tag.
+    const origins = {
+      gtm: ["https://www.googletagmanager.com"],
+      // GTM's Preview/debug mode (Tag Assistant) injects its own UI.
+      gtmPreview: ["https://tagmanager.google.com"],
+      ga4: [
+        "https://www.google-analytics.com",
+        "https://*.google-analytics.com",
+        "https://*.analytics.google.com",
+      ],
+      googleAds: [
+        "https://www.googleadservices.com",
+        "https://googleads.g.doubleclick.net",
+        "https://*.doubleclick.net",
+        "https://www.google.com",
+        "https://*.google.com",
+      ],
+      meta: ["https://connect.facebook.net", "https://www.facebook.com"],
+      clarity: ["https://www.clarity.ms", "https://*.clarity.ms", "https://c.bing.com"],
+    };
+
     // React refresh evaluates the modules it swaps in, so `unsafe-eval` is the
     // price of HMR. Production never gets it.
     const scriptSrc = [
       "'self'",
       // Next inlines hydration data and the flash-of-wrong-theme guard, and the GTM
-      // bootstrap in layout.tsx is inline too. All three are build-authored, but CSP
-      // cannot tell them from an injected one without a nonce — which needs
-      // middleware this app deliberately does not have. The remaining directives are
-      // still worth having, so this stays honest about what it does not buy.
+      // and Consent Mode bootstraps in the layout are inline too. All are
+      // build-authored, but CSP cannot tell them from an injected one without a
+      // nonce — which needs per-request rendering this app deliberately does not
+      // have (pages are prerendered). The remaining directives are still worth
+      // having, so this stays honest about what it does not buy.
       "'unsafe-inline'",
-      "https://www.googletagmanager.com",
+      ...origins.gtm,
+      ...origins.gtmPreview,
+      ...origins.ga4,
+      ...origins.googleAds,
+      "https://connect.facebook.net",
+      "https://www.clarity.ms",
+      "https://*.clarity.ms",
       ...(isDev ? ["'unsafe-eval'"] : []),
     ].join(" ");
 
@@ -46,13 +77,30 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       `script-src ${scriptSrc}`,
       // Tailwind's runtime layer and framer-motion both write style attributes.
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://www.googletagmanager.com https://www.google-analytics.com",
-      // next/font/google self-hosts at build time, so no external font origin.
-      "font-src 'self' data:",
-      "connect-src 'self' https://www.googletagmanager.com https://www.google-analytics.com https://*.analytics.google.com",
-      // The GTM noscript iframe in layout.tsx.
-      "frame-src https://www.googletagmanager.com",
+      // Google Fonts is only for GTM Preview's own panel.
+      `style-src 'self' 'unsafe-inline' ${origins.gtmPreview.join(" ")} https://fonts.googleapis.com`,
+      // Tracking pixels are images.
+      [
+        "img-src 'self' data: blob:",
+        ...origins.gtm,
+        ...origins.gtmPreview,
+        ...origins.ga4,
+        ...origins.googleAds,
+        ...origins.meta,
+        ...origins.clarity,
+      ].join(" "),
+      // next/font/google self-hosts at build time; gstatic is GTM Preview's.
+      "font-src 'self' data: https://fonts.gstatic.com",
+      [
+        "connect-src 'self'",
+        ...origins.gtm,
+        ...origins.ga4,
+        ...origins.googleAds,
+        ...origins.meta,
+        ...origins.clarity,
+      ].join(" "),
+      // The GTM noscript iframe, Google Ads' conversion iframe, Meta's pixel frame.
+      "frame-src https://www.googletagmanager.com https://td.doubleclick.net https://www.facebook.com",
       "object-src 'none'",
       // Neither is used, and both are how an injected tag rewrites where relative
       // URLs and form posts actually go.

@@ -434,7 +434,8 @@
   },
   "footer": {
     "blurb": "Fullstack engineer building AI-augmented products on top of eight years of Laravel, PrestaShop and Flutter delivery.",
-    "copyright": "All rights reserved."
+    "copyright": "All rights reserved.",
+    "cookieSettings": "Cookie settings"
   },
   "notFound": {
     "title": "Page not found",
@@ -474,5 +475,20 @@
     "description": "Fullstack engineer shipping AI-augmented products: Claude-powered agents and LLM pipelines on top of eight years of Laravel, PrestaShop and Flutter delivery.",
     "jobTitle": "AI-augmented fullstack engineer",
     "home": "Home"
+  },
+  "consent": {
+    "title": "Cookies",
+    "body": "I use analytics to see which pages bring in clients, and ad cookies to measure campaigns. Nothing optional loads unless you say yes, and you can change your mind any time from the footer.",
+    "accept": "Accept all",
+    "reject": "Reject all",
+    "customise": "Choose what to allow",
+    "save": "Save my choices",
+    "alwaysOn": "Always on",
+    "necessaryTitle": "Strictly necessary",
+    "necessaryBody": "Language, theme and remembering this choice. No tracking.",
+    "analyticsTitle": "Analytics",
+    "analyticsBody": "Google Analytics and Microsoft Clarity: which pages are read and where visitors drop off.",
+    "marketingTitle": "Advertising",
+    "marketingBody": "Google Ads and Meta: measuring whether ads lead to enquiries, and showing ads to past visitors."
   }
 }

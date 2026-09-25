@@ -2,6 +2,7 @@ import { Link } from "@/i18n/navigation";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 import { useTranslations } from "next-intl";
 import { activeSocials, configured, site } from "@/config/site";
+import { ConsentSettingsButton } from "@/components/consent/ConsentBanner";
 
 const ICONS = {
   github: FaGithub,
@@ -54,9 +55,12 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col-reverse items-center gap-6 border-t border-hairline pt-6 sm:flex-row sm:justify-between">
-          <p className="font-mono text-xs text-ink-faint">
-            © {new Date().getFullYear()} {site.name}. {t("footer.copyright")}
-          </p>
+          <div className="flex flex-col items-center gap-1 sm:flex-row sm:gap-5">
+            <p className="font-mono text-xs text-ink-faint">
+              © {new Date().getFullYear()} {site.name}. {t("footer.copyright")}
+            </p>
+            <ConsentSettingsButton label={t("footer.cookieSettings")} />
+          </div>
 
           {socials.length > 0 && (
             <ul className="flex items-center gap-1">

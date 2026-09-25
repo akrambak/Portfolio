@@ -13,6 +13,10 @@ import type { Locale } from "@/i18n/config";
 import { pageMetadata } from "@/lib/seo/metadata";
 import { siteGraph } from "@/lib/seo/schema";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { AnalyticsProvider } from "@/components/analytics/AnalyticsProvider";
+import { ConsentBanner } from "@/components/consent/ConsentBanner";
+import { CONSENT_BOOTSTRAP } from "@/lib/consent";
+import { GTM_ID } from "@/lib/analytics/config";
 
 /** Display — headings and the wordmark. */
 const grotesk = Space_Grotesk({
@@ -94,6 +98,12 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        {/*
+          Consent Mode defaults. A plain inline <script>, not next/script: it has to run
+          during parsing, strictly before the GTM bootstrap below (afterInteractive), or
+          Google tags read "no consent state" instead of "denied".
+        */}
+        <script dangerouslySetInnerHTML={{ __html: CONSENT_BOOTSTRAP }} />
         {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
@@ -101,7 +111,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
             j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-            })(window,document,'script','dataLayer','GTM-MD68KMQC');
+            })(window,document,'script','dataLayer','${GTM_ID}');
           `}
         </Script>
         {/* End Google Tag Manager */}
@@ -110,7 +120,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
         className={`${grotesk.variable} ${plexSans.variable} ${plexMono.variable} antialiased`}
       >
         {/* Google Tag Manager (noscript) */}
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MD68KMQC"
+        <noscript><iframe src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
         height="0" width="0" style={{display:'none',visibility:'hidden'}}></iframe></noscript>
         {/* End Google Tag Manager (noscript) */}
         <JsonLd
@@ -127,6 +137,8 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
             disableTransitionOnChange
           >
             <Layout>{children}</Layout>
+            <ConsentBanner />
+            <AnalyticsProvider />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
