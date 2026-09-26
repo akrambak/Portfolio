@@ -26,6 +26,8 @@ export interface PrivacySection {
 }
 
 export interface PrivacyContent {
+  /** Small label above the title, e.g. the product a policy covers. */
+  eyebrow?: string;
   title: string;
   lede: string;
   updatedLabel: string;
