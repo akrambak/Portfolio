@@ -137,6 +137,7 @@ const en: PrivacyContent = {
             "Google Ireland Ltd — Google Tag Manager, Google Analytics, Google Ads ([privacy policy](https://policies.google.com/privacy))",
             "Microsoft Ireland Operations Ltd — Microsoft Clarity ([privacy statement](https://privacy.microsoft.com/privacystatement))",
             "Meta Platforms Ireland Ltd — Meta Pixel and Conversions API ([privacy policy](https://www.facebook.com/privacy/policy/))",
+            "Calendly LLC and Zoom Communications — only if you book a call: the booking page and the video call run on their services, under their own policies ([Calendly](https://calendly.com/legal/privacy-notice), [Zoom](https://www.zoom.com/en/trust/privacy/privacy-statement/))",
           ],
         },
         {
@@ -285,6 +286,7 @@ const fr: PrivacyContent = {
             "Google Ireland Ltd — Google Tag Manager, Google Analytics, Google Ads ([règles de confidentialité](https://policies.google.com/privacy?hl=fr))",
             "Microsoft Ireland Operations Ltd — Microsoft Clarity ([déclaration de confidentialité](https://privacy.microsoft.com/fr-fr/privacystatement))",
             "Meta Platforms Ireland Ltd — Meta Pixel et API Conversions ([politique de confidentialité](https://www.facebook.com/privacy/policy/))",
+            "Calendly LLC et Zoom Communications — uniquement si vous réservez un appel : la page de réservation et l'appel vidéo passent par leurs services, sous leurs propres politiques ([Calendly](https://calendly.com/legal/privacy-notice), [Zoom](https://www.zoom.com/en/trust/privacy/privacy-statement/))",
           ],
         },
         {

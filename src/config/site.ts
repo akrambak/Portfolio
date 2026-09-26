@@ -35,11 +35,12 @@ export const site: SiteConfig = {
   location: "Remote · EU",
   availableForWork: true,
 
-  // TODO: fill these in. Each one is hidden until it has a real URL.
+  // Each one is hidden until it has a real URL.
   links: {
-    github: null,
-    linkedin: null,
-    calendly: null,
+    github: "https://github.com/akrambak",
+    linkedin: "https://www.linkedin.com/in/bakhoucheakram/",
+    // 30-minute intro call; the event itself runs on Zoom.
+    calendly: "https://calendly.com/akbak/30min",
   },
 
   // TODO: fill these in for the privacy policy. Each line is hidden until set.
