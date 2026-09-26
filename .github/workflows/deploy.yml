@@ -46,12 +46,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # NEXT_PUBLIC_SITE_URL is inlined into the bundle here and cannot be
-      # changed on the VPS afterwards. Changing it requires a rebuild.
+      # NEXT_PUBLIC_* values are inlined into the bundle here and cannot be
+      # changed on the VPS afterwards. Changing one requires a rebuild.
       - name: Build
         run: npm run build
         env:
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://bak-dev.com' }}
+          NEXT_PUBLIC_GTM_ID: ${{ vars.NEXT_PUBLIC_GTM_ID || 'GTM-MD68KMQC' }}
 
       - name: Package release
         run: bash scripts/package-release.sh

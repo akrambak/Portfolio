@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { Post, PostFrontmatter } from "@/lib/mdxUtils";
 import { PlateHover } from "@/components/PlateHover";
 import { ArrowRight } from "@/components/ui/CTALink";

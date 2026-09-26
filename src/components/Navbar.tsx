@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from "@/i18n/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AnimatePresence,
@@ -121,6 +121,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  data-track={`nav_${link.key}`}
                   aria-current={active ? "page" : undefined}
                   className={
                     "relative py-2 text-[0.78rem] tracking-tight transition-colors duration-200 " +
@@ -204,6 +205,8 @@ export default function Navbar() {
                   <Link
                     ref={index === 0 ? firstLinkRef : undefined}
                     href={link.href}
+                    data-track={`nav_${link.key}`}
+                    data-track-location="mobile_menu"
                     aria-current={isActive(link.href) ? "page" : undefined}
                     className={
                       "flex items-center justify-between border-b border-hairline py-4 font-display text-2xl tracking-tight transition-colors duration-200 " +

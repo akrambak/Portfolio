@@ -1,40 +1,46 @@
 import { getAllPostSlugs, getPostData, PostFrontmatter } from "@/lib/mdxUtils";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import type { Metadata } from "next";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import type { Locale } from "@/i18n/config";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { blogPosting, breadcrumbs } from "@/lib/seo/schema";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ScrollProgress } from "@/components/motion/ScrollProgress";
 import { Reveal } from "@/components/motion/Reveal";
 
 type BlogPostPageProps = {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: Locale; slug: string }>;
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export async function generateStaticParams() {
-  return getAllPostSlugs().map((slug) => ({ slug }));
+  return routing.locales.flatMap((locale) =>
+    getAllPostSlugs().map((slug) => ({ locale, slug })),
+  );
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const postData = await getPostData(slug);
 
   if (!postData) return { title: "Post not found" };
 
-  const { title, excerpt, date } = postData.frontmatter;
+  const { title, excerpt, date, tags } = postData.frontmatter;
 
-  return {
+  return pageMetadata({
+    locale,
+    path: `/blog/${slug}`,
     title,
     description: excerpt,
-    openGraph: {
-      type: "article",
-      title,
-      description: excerpt,
-      publishedTime: date,
-    },
-    twitter: { card: "summary_large_image", title, description: excerpt },
-  };
+    type: "article",
+    // Posts are written in English only; /fr/blog/<slug> canonicalises to it.
+    translated: false,
+    article: { publishedTime: date, tags },
+  });
 }
 
 function formatDate(dateString: string, locale: string): string {
@@ -46,18 +52,28 @@ function formatDate(dateString: string, locale: string): string {
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
   const postData = await getPostData(slug);
 
   if (!postData) notFound();
 
   const t = await getTranslations();
-  const locale = await getLocale();
   const { source, frontmatter, readingMinutes } = postData;
-  const { title, date, category, tags } = frontmatter as PostFrontmatter;
+  const { title, date, category, tags, excerpt } = frontmatter as PostFrontmatter;
 
   return (
     <>
+      <JsonLd
+        data={blogPosting({ slug, title, description: excerpt, datePublished: date, tags })}
+      />
+      <JsonLd
+        data={breadcrumbs(locale, [
+          { name: t("meta.home"), path: "/" },
+          { name: t("blogPage.title"), path: "/blog" },
+          { name: title, path: `/blog/${slug}` },
+        ])}
+      />
       <ScrollProgress />
 
       <article className="mx-auto max-w-3xl px-5 py-16 sm:px-8 sm:py-20">

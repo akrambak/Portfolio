@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { dist, dur, ease } from "@/lib/motion";
@@ -154,7 +154,7 @@ export function TitleBlock({
           {bookBody && (
             <p className="mb-5 max-w-[46ch] text-sm leading-relaxed text-ink-muted">{bookBody}</p>
           )}
-          <CTALink href={calendly} external>
+          <CTALink href={calendly} external trackId="book_call" trackLocation="contact">
             {bookCta}
             <ArrowRight />
           </CTALink>

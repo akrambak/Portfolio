@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { ReactNode } from "react";
 import { Magnetic } from "@/components/motion/Magnetic";
 
@@ -10,6 +10,13 @@ interface CTALinkProps {
   variant?: Variant;
   external?: boolean;
   className?: string;
+  /**
+   * Analytics id for this button, e.g. "start_project". Rendered as `data-track`;
+   * AnalyticsProvider's delegated listener turns a click into a `cta_click` event.
+   */
+  trackId?: string;
+  /** Where on the page it sits, e.g. "hero". Defaults to the enclosing landmark. */
+  trackLocation?: string;
 }
 
 const BASE =
@@ -32,15 +39,21 @@ export function CTALink({
   variant = "solid",
   external = false,
   className = "",
+  trackId,
+  trackLocation,
 }: CTALinkProps) {
   const classes = `${BASE} ${VARIANTS[variant]} ${className}`;
+  const tracking = {
+    ...(trackId ? { "data-track": trackId } : {}),
+    ...(trackLocation ? { "data-track-location": trackLocation } : {}),
+  };
 
   const content = external ? (
-    <a href={href} target="_blank" rel="noopener noreferrer" className={classes}>
+    <a href={href} target="_blank" rel="noopener noreferrer" className={classes} {...tracking}>
       {children}
     </a>
   ) : (
-    <Link href={href} className={classes}>
+    <Link href={href} className={classes} {...tracking}>
       {children}
     </Link>
   );

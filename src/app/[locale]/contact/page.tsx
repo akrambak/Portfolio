@@ -1,18 +1,27 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { Locale } from "@/i18n/config";
+import { pageMetadata } from "@/lib/seo/metadata";
 import { ContactRouter } from "@/components/contact/ContactRouter";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { activeSocials, configured, site } from "@/config/site";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations();
-  return {
+type PageProps = { params: Promise<{ locale: Locale }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale });
+  return pageMetadata({
+    locale,
+    path: "/contact",
     title: t("contactPage.title"),
     description: t("contactPage.lede"),
-  };
+  });
 }
 
-export default async function ContactPage() {
+export default async function ContactPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations();
 
   return (

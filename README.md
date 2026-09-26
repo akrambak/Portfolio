@@ -154,9 +154,18 @@ In production that means the **VPS's own Postfix** on `127.0.0.1:25`: since the 
 
 Locally the route will try `127.0.0.1:25` and fail unless you point `SMTP_HOST` / `SMTP_PORT` in `.env.local` at a mail catcher. Delivery on the VPS is verified with `node scripts/check-mail.mjs --send` — see [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md).
 
-## Analytics
+## Analytics & consent
 
-Google Tag Manager (container `GTM-MD68KMQC`) is injected in `src/app/layout.tsx` via `next/script`, with the `<noscript>` fallback in `<body>`.
+Tags live in **Google Tag Manager** (`NEXT_PUBLIC_GTM_ID`, default `GTM-MD68KMQC`), loaded in `src/app/[locale]/layout.tsx`. The code only emits events; GA4, Google Ads, Meta Pixel and Microsoft Clarity are configured in the GTM UI.
+
+- **Consent** — `src/lib/consent.ts` sets Google Consent Mode v2 to *denied* inline, before GTM loads, and `ConsentBanner` records the visitor's choice (analytics / marketing) in a first-party `consent` cookie. In GTM, gate GA4 and Clarity on `analytics_storage`, and Meta and Ads on `ad_storage`.
+- **Events** — `src/lib/analytics/events.ts` is the typed contract for the dataLayer: `page_view`, `cta_click`, `email_click`, `book_call_click`, `form_start`, `form_route_select`, `form_error` and `generate_lead` (with a value, `event_id` and a hashed email for Enhanced Conversions). To track a CTA, give `CTALink` a `trackId`.
+- **Server-side leads** — after an enquiry is delivered, `/api/contact` reports a `Lead` to the Meta Conversions API (`src/lib/metaCapi.ts`), only with marketing consent. Meta deduplicates it against the Pixel by `event_id`. The call is off until `META_PIXEL_ID` and `META_CAPI_TOKEN` are set in `.env.production`.
+- **CSP** — every tag origin is listed in `next.config.ts`. A tag added in GTM without its origin there is blocked.
+
+## SEO
+
+English lives at `/…` and French at `/fr/…` (next-intl, `localePrefix: "as-needed"`, `src/i18n/routing.ts`). `pageMetadata()` in `src/lib/seo/metadata.ts` gives every page a canonical URL, hreflang alternates and full Open Graph tags. JSON-LD structured data comes from `src/lib/seo/schema.ts`. Blog posts are English-only, so their `/fr` versions point their canonical at the English URL. There is also `/rss.xml`, a sitemap listing both locales, and a generated share image per post.
 
 ## Deployment
 

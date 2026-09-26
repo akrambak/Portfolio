@@ -65,11 +65,13 @@ export function Hero() {
             <CTALink
               href={primaryHref as string}
               external={configured(site.links.calendly)}
+              trackId="start_project"
+              trackLocation="hero"
             >
               {t("hero.ctaPrimary")}
               <ArrowRight />
             </CTALink>
-            <CTALink href="/blog" variant="ghost">
+            <CTALink href="/blog" variant="ghost" trackId="read_writing" trackLocation="hero">
               {t("hero.ctaSecondary")}
             </CTALink>
           </motion.div>

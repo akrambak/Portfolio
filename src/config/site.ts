@@ -18,6 +18,13 @@ export interface SiteConfig {
     linkedin: string | null;
     calendly: string | null;
   };
+  /** Shown on /privacy when set. */
+  legal: {
+    /** The controller's postal address. GDPR asks for contact details; email alone is the minimum. */
+    postalAddress: string | null;
+    /** Who hosts the server, e.g. "Hetzner Online GmbH, Germany". */
+    hosting: string | null;
+  };
 }
 
 export const site: SiteConfig = {
@@ -28,11 +35,18 @@ export const site: SiteConfig = {
   location: "Remote · EU",
   availableForWork: true,
 
-  // TODO: fill these in. Each one is hidden until it has a real URL.
+  // Each one is hidden until it has a real URL.
   links: {
-    github: null,
-    linkedin: null,
-    calendly: null,
+    github: "https://github.com/akrambak",
+    linkedin: "https://www.linkedin.com/in/bakhoucheakram/",
+    // 30-minute intro call; the event itself runs on Zoom.
+    calendly: "https://calendly.com/akbak/30min",
+  },
+
+  // TODO: fill these in for the privacy policy. Each line is hidden until set.
+  legal: {
+    postalAddress: null,
+    hosting: null,
   },
 };
 

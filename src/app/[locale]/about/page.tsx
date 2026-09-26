@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
+import type { Locale } from "@/i18n/config";
+import { pageMetadata } from "@/lib/seo/metadata";
+import { breadcrumbs } from "@/lib/seo/schema";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { ArrowRight, CTALink } from "@/components/ui/CTALink";
@@ -15,19 +19,32 @@ const SKILLS = [
 ] as const;
 const HIGHLIGHTS = ["bilingual", "projectManagement"] as const;
 
-export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations();
-  return {
+type PageProps = { params: Promise<{ locale: Locale }> };
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale });
+  return pageMetadata({
+    locale,
+    path: "/about",
     title: t("aboutPage.title"),
     description: t("aboutPage.lede"),
-  };
+  });
 }
 
-export default async function AboutPage() {
+export default async function AboutPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations();
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      <JsonLd
+        data={breadcrumbs(locale, [
+          { name: t("meta.home"), path: "/" },
+          { name: t("aboutPage.title"), path: "/about" },
+        ])}
+      />
       <PageHeader
         eyebrow={t("aboutPage.eyebrow")}
         title={t("aboutPage.title")}
@@ -132,7 +149,7 @@ export default async function AboutPage() {
           </Reveal>
 
           <Reveal>
-            <CTALink href="/contact">
+            <CTALink href="/contact" trackId="start_project" trackLocation="about">
               {t("cta.primary")}
               <ArrowRight />
             </CTALink>
