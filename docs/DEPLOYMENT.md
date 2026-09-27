@@ -51,7 +51,9 @@ Deliberately outside `public_html`, so Apache never serves application source:
 
 PM2's `cwd` is the `current` **symlink**, not a release realpath. That matters twice: `/blog` resolves `content/blog` through `process.cwd()` at request time, and the path `pm2 save` persists stays valid across deploys and pruning, so a reboot restores the app correctly.
 
-`HOSTNAME=127.0.0.1` in `ecosystem.config.js` is a security requirement, not a preference. Next's standalone server binds `0.0.0.0` by default, which would expose port 3100 to the internet un-proxied and un-TLS'd, bypassing Apache entirely.
+A loopback `HOSTNAME` in `ecosystem.config.js` is a security requirement, not a preference. Next's standalone server binds `0.0.0.0` by default, which would expose port 3100 to the internet un-proxied and un-TLS'd, bypassing Apache entirely.
+
+It must be spelled `HOSTNAME=localhost` (with `node_args: --dns-result-order=ipv4first`, so it still binds `127.0.0.1` and not `::1`), **not** `127.0.0.1`. Next normalises any `127.x` host in middleware to `localhost`, but uses `HOSTNAME` as the router's own origin; when the two differ, every next-intl rewrite (`/` → `/en`) is treated as an external URL and proxied back into the app, which redirects `/en` → `/`. The result is a `307` to itself on every English page (and a `500` behind Apache), which failed the health check and rolled back the deploys of PRs #6 and #7.
 
 ## Current server state (verified 2026-09-02)
 
