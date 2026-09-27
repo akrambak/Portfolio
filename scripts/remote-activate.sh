@@ -238,6 +238,12 @@ health_check() {
   done
 
   warn "Timed out after ${HEALTH_TIMEOUT}s (last status: ${code:-none})"
+  # A bare "307" does not say whether / redirects somewhere sensible or to
+  # itself - the latter is the HOSTNAME/rewrite-origin loop documented in
+  # ecosystem.config.js.
+  case "$code" in
+    3??) warn "/ redirects to: $(curl -s -o /dev/null -w '%{redirect_url}' --max-time 10 "$base/" || true)" ;;
+  esac
   return 1
 }
 

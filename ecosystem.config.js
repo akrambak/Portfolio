@@ -46,6 +46,10 @@ module.exports = {
       // into root's nvm, which remains the only node on the box.
       interpreter: "/usr/local/bin/node",
 
+      // Makes HOSTNAME=localhost below resolve to 127.0.0.1 rather than ::1, so
+      // the bind stays on the address Apache and the health check dial.
+      node_args: "--dns-result-order=ipv4first",
+
       exec_mode: "fork",
       instances: 1,
       autorestart: true,
@@ -57,7 +61,16 @@ module.exports = {
         // Next's standalone server binds 0.0.0.0 by default, which would expose
         // the app port to the internet un-proxied and un-TLS'd. Apache is the
         // only thing that should be able to reach it.
-        HOSTNAME: "127.0.0.1",
+        //
+        // "localhost", NOT "127.0.0.1", although both bind the same loopback
+        // address (see node_args). Next's NextURL rewrites any 127.x host to
+        // "localhost", so every middleware rewrite leaves as
+        // http://localhost:PORT/..., while the router takes this value as its
+        // own origin. With 127.0.0.1 the two never match, every next-intl
+        // rewrite (/ -> /en) is proxied as an EXTERNAL URL back into the app,
+        // which then redirects /en -> / - a 307 to itself on every English
+        // page, and a 500 behind Apache's X-Forwarded-Proto: https.
+        HOSTNAME: "localhost",
       },
 
       // Safety net against a slow leak. Steady state is ~280MB, ~440MB after
