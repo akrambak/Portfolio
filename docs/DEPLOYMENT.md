@@ -11,7 +11,7 @@ push to main
        scp over SSH (key from secrets, known_hosts pinned)
   └─ VPS: scripts/remote-activate.sh
        unpack → releases/<sha> → flip `current` → pm2 reload
-       health check → rollback on failure → prune to 5
+       health check → rollback on failure → prune to 3
   └─ Apache (Virtualmin vhost, TLS) → 127.0.0.1:3100
 ```
 
@@ -40,7 +40,7 @@ Deliberately outside `public_html`, so Apache never serves application source:
 
 ```
 /home/<domain-user>/apps/portfolio/
-├── releases/<sha>/       immutable release trees (newest 5 kept)
+├── releases/<sha>/       immutable release trees (newest 3 kept, `KEEP_RELEASES`)
 ├── current -> releases/<sha>
 ├── shared/
 │   ├── .env.production   runtime secrets, mode 600, symlinked into each release
@@ -296,7 +296,11 @@ After the reload, `remote-activate.sh` polls `http://127.0.0.1:3100` for up to 4
 
 The second condition is not redundant. `/blog` is dynamic and reads `content/blog` from disk at request time; a bundle missing that directory still returns **200**, with an empty list. This was verified by deliberately removing `content/` from a packaged bundle — `/` and `/blog` both answered 200 while zero posts rendered. A status-code-only check would have shipped it.
 
-On failure the script prints the last 40 lines of PM2 logs, flips `current` back to the previous release, reloads, re-checks, and exits non-zero. The workflow goes red and the site stays up.
+Redeploying the release that is already live (**Re-run jobs**, or **Run workflow** on an unchanged `main`) is safe: it is unpacked beside the live tree as `<sha>-redeploy-<timestamp>` rather than replacing it, so the site never serves from a half-deleted directory and the rollback target stays intact.
+
+On failure the script prints the last 40 lines of PM2 logs, flips `current` back to the previous release, reloads, re-checks, deletes the failed release, and exits non-zero. The workflow goes red and the site stays up. Deleting the failed release keeps every tree in `releases/` a known-good rollback target. Before this, two failed releases held their `KEEP_RELEASES` slots and the next prune removed the last good one instead.
+
+Pruning happens after the new release is live, so it is best-effort and never fails the deploy. A release the deploy user cannot delete (for example root-owned files left from before this pipeline) is skipped with a `WARN: Cannot prune releases/<sha>` line and the exact `sudo rm -rf` to run once.
 
 Manual rollback:
 

@@ -126,6 +126,15 @@ if [ -n "$avail_kb" ] && [ "$avail_kb" -lt "$need_kb" ] 2>/dev/null; then
 fi
 log "Space check OK: $(( avail_kb / 1024 ))MB available, ~$(( need_kb / 1024 ))MB needed"
 
+# Redeploying the live release ("Re-run jobs", or "Run workflow" on an unchanged
+# main) must not delete the tree the site is serving from, and would leave the
+# rollback target pointing at that same deleted tree. Unpack it beside instead.
+if [ -e "$TARGET" ] && [ "$(readlink -f "$CURRENT" 2>/dev/null || true)" = "$(readlink -f "$TARGET")" ]; then
+  RELEASE_ID="$RELEASE_ID-redeploy-$(date -u +%Y%m%d%H%M%S)"
+  TARGET="$RELEASES/$RELEASE_ID"
+  log "That release is live - unpacking this redeploy as $RELEASE_ID"
+fi
+
 if [ -e "$TARGET" ]; then
   log "Release $RELEASE_ID already unpacked - replacing it"
   rm -rf "$TARGET"
@@ -259,6 +268,13 @@ else
     ln -sfn "$PREVIOUS" "$CURRENT"
     reload_app
     if health_check; then
+      # A release that failed its health check must not stay behind as a
+      # rollback candidate or hold a KEEP_RELEASES slot: two failed releases
+      # once outlived the last good one at the next prune. Skipped when this
+      # was a redeploy of the release we just rolled back to.
+      if [ "$(readlink -f "$TARGET")" != "$(readlink -f "$PREVIOUS")" ]; then
+        rm -rf "$TARGET" 2>/dev/null || warn "Could not remove failed release $TARGET"
+      fi
       die "Deploy failed health check - rolled back to $(basename "$PREVIOUS"), site is up."
     fi
     die "Deploy failed health check AND rollback did not recover. Site is DOWN."
@@ -271,13 +287,27 @@ log "pm2 state saved"
 
 # ---------------------------------------------------------------------------
 # 7. Prune. Never remove whatever current points at.
+#
+#    Housekeeping: nothing here may fail a deploy that is already live and
+#    healthy. Under set -e, one release this user could not delete (root-owned
+#    files from before this pipeline) used to abort here - after the switch -
+#    and report a working deploy as failed, with one stderr line per file.
 # ---------------------------------------------------------------------------
 live="$(basename "$(readlink -f "$CURRENT")")"
 while IFS= read -r r; do
   [ -n "$r" ] || continue
   [ "$r" = "$live" ] && continue
+  dir="${RELEASES:?}/$r"
+  # rm needs write access to every directory it empties. Check first rather
+  # than delete half a tree: a partial delete also bumps the release's mtime,
+  # which is what orders releases here, and makes a dead tree look newest.
+  if [ -n "$(find "$dir" -type d ! -writable -print -quit 2>/dev/null)" ]; then
+    warn "Cannot prune releases/$r - it has directories owned by: $(find "$dir" -type d ! -writable -printf '%u\n' 2>/dev/null | sort -u | paste -sd, -)"
+    warn "Remove it once as root: sudo rm -rf '$dir'"
+    continue
+  fi
   log "Pruning old release $r"
-  rm -rf "${RELEASES:?}/$r"
+  rm -rf "$dir" 2>/dev/null || warn "Could not fully remove releases/$r"
 done < <(ls -1t "$RELEASES" 2>/dev/null | tail -n +$((KEEP_RELEASES + 1)) || true)
 
 rm -f "$TARBALL"
