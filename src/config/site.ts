@@ -40,7 +40,7 @@ export const site: SiteConfig = {
     github: "https://github.com/akrambak",
     linkedin: "https://www.linkedin.com/in/bakhoucheakram/",
     // 30-minute intro call; the event itself runs on Zoom.
-    calendly: "https://calendly.com/akbak/30min",
+    calendly: "https://calendly.com/me-bak-dev/30min",
   },
 
   // TODO: fill these in for the privacy policy. Each line is hidden until set.
