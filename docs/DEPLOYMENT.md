@@ -271,6 +271,34 @@ curl -sS -X POST http://127.0.0.1:3100/api/contact \
 
 The route rate-limits to 5 submissions per IP per 10 minutes, held in process memory. That is correct only because PM2 runs a single fork (`exec_mode: "fork"`, `instances: 1`); clustering the app would silently make the limit per worker.
 
+## Email open tracking (`/px`)
+
+Career-OS embeds a 1×1 pixel in each upgrade proposal. The two routes that back it live here, not in Career-OS, which never serves HTTP:
+
+| Route | Served at | Does |
+| --- | --- | --- |
+| `src/app/px/o/[token]/route.ts` | `GET /px/o/<token>.gif` | returns the 42-byte transparent GIF and records the open |
+| `src/app/px/opens.json/route.ts` | `GET /px/opens.json` | returns `[{ token, opened_at }]` (first open per token), behind `Authorization: Bearer <TRACKING_API_KEY>` |
+
+Both are thin wrappers over `src/lib/tracking.ts`, which owns the JSONL store. `/px` is excluded from the next-intl middleware (`src/middleware.ts`) exactly like `/api`, so it is never rewritten to a locale.
+
+**Apache needs no change.** The catch-all `/` → `127.0.0.1:3100` proxy already forwards `/px/*` to Node (it is not under the `/.well-known` exclusion).
+
+**Set two values** in `shared/.env.production` (both documented in `.env.production.example`):
+
+- `TRACKING_API_KEY` — a long random secret, the same value Career-OS holds. Unset, the pixel still serves but `/px/opens.json` always 401s, so opens are never exposed by an unconfigured deploy.
+- `TRACKING_STORE` — **must** be a path under `shared/`, e.g. `/home/bak-dev/apps/portfolio/shared/data/opens.jsonl`. The default lands inside the release tree, which a later deploy prunes — silently losing every open. `shared/` survives deploys and rollbacks; the server creates the directory. In production the app logs a warning on startup if this is unset.
+
+Verify after deploy:
+
+```bash
+curl -s https://bak-dev.com/px/o/deploycheck.gif | wc -c                     # -> 42
+curl -s -H "Authorization: Bearer $TRACKING_API_KEY" https://bak-dev.com/px/opens.json   # -> [...,{"token":"deploycheck",...}]
+curl -s -o /dev/null -w '%{http_code}\n' https://bak-dev.com/px/opens.json   # -> 401 (no bearer)
+```
+
+`opens.jsonl` grows unbounded — one line per open, including Apple/Gmail prefetches. Truncate or rotate it periodically; it is append-only and nothing but the readback depends on its history. The pixel is a small deliverability cost, so re-run [mail-tester.com](https://www.mail-tester.com) after Career-OS starts sending with it enabled.
+
 ## Deploying
 
 Normal path — merge to `main`. To re-run without a new commit:
