@@ -53,3 +53,6 @@ next-env.d.ts
 # deploy artifacts (scripts/package-release.sh)
 /dist/
 /release.tar.gz
+
+# local email-open store (TRACKING_STORE default in dev; src/lib/tracking.ts)
+/.data/
