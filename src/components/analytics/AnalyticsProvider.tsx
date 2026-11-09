@@ -3,7 +3,22 @@
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
-import { track } from "@/lib/analytics/events";
+import { track, beaconLead, readLid } from "@/lib/analytics/events";
+
+/**
+ * A visitor who arrived from a tracked email link carries a `lid` cookie. Publish it
+ * to the dataLayer as `user_id` so GTM's GA4 config tag stamps every event with the
+ * same User-ID, and emit `lead_identified` once. No cookie → nothing happens.
+ */
+function useLeadIdentity() {
+  useEffect(() => {
+    const lead = readLid();
+    if (!lead) return;
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ user_id: lead });
+    track("lead_identified", { user_id: lead });
+  }, []);
+}
 
 /**
  * page_view on every route change.
@@ -33,6 +48,9 @@ function RouteTracker() {
       page_title: document.title,
       page_locale: locale,
     });
+    // Mirror to the first-party log for an identified lead, so the on-site journey
+    // reaches Career-OS and GA4 even when the GA4 tag is consent-gated off.
+    beaconLead("page_view", { page_path: pathname });
   }, [pathname, searchParams, locale]);
 
   return null;
@@ -63,12 +81,17 @@ function useClickTracking() {
 
       if (href.startsWith("mailto:")) {
         track("email_click", { cta_location });
+        beaconLead("email_click", { cta_location });
       } else if (/(^|\.)(calendly|cal)\.com$/.test(link.hostname)) {
         track("book_call_click", { cta_location, link_url: link.href });
+        beaconLead("book_call_click", { cta_location });
       }
 
       const id = link.dataset.track;
-      if (id) track("cta_click", { cta_id: id, cta_location, link_url: link.href });
+      if (id) {
+        track("cta_click", { cta_id: id, cta_location, link_url: link.href });
+        beaconLead("cta_click", { cta_id: id, cta_location });
+      }
     };
 
     // Capture phase: a link that navigates away still reports before the unload.
@@ -78,6 +101,7 @@ function useClickTracking() {
 }
 
 export function AnalyticsProvider() {
+  useLeadIdentity();
   useClickTracking();
 
   // useSearchParams opts the nearest Suspense boundary into client rendering; this

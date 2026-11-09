@@ -493,5 +493,32 @@
     "marketingTitle": "Advertising",
     "marketingBody": "Google Ads and Meta: measuring whether ads lead to enquiries, and showing ads to past visitors.",
     "learnMore": "Privacy policy"
+  },
+  "report": {
+    "eyebrow": "Security report",
+    "lede": "Prepared from what {running} shows publicly — no test was run against your store and nothing was accessed.",
+    "platform": "Platform",
+    "support": "Security support",
+    "supported": "Receiving patches",
+    "eol": "End of life — no patches",
+    "phpEol": "PHP {version} — no longer maintained",
+    "phpOk": "Supported",
+    "vulnTitle": "{count, plural, one {# known vulnerability} other {# known vulnerabilities}}",
+    "kev": "Actively exploited",
+    "andMore": "+{n} more not shown here",
+    "meansTitle": "What this means for your store",
+    "meansBody": "An online store on an unpatched platform is exactly what attackers scan for: card skimmers injected into the checkout, customer data stolen — a GDPR breach you must report within 72 hours — and the site flagged by Google or your payment provider.",
+    "fixTitle": "How I fix it",
+    "fix": {
+      "backup": "Full backup and a staging copy first — your live shop isn't touched until you approve.",
+      "upgrade": "Core upgrade, with module and theme compatibility fixes.",
+      "harden": "Security hardening, then a full test of checkout, payments and orders."
+    },
+    "price": "Fixed price, from {price} € for {platform}.",
+    "bookCall": "Book a free 15-min call",
+    "getQuote": "Send me a fixed quote",
+    "quoteSubject": "Fixed quote — {domain}",
+    "ps": "This report is based only on what your store shows publicly. If it isn't relevant, you can stop these emails below.",
+    "unsubscribe": "Stop these emails"
   }
 }

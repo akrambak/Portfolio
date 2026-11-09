@@ -12,7 +12,7 @@ import type { Locale } from "@/i18n/config";
  * `{email}` is replaced with site.email.
  */
 
-export const PRIVACY_UPDATED = "2026-09-25";
+export const PRIVACY_UPDATED = "2026-11-09";
 
 export type PrivacyBlock =
   | { kind: "p"; text: string }
@@ -38,7 +38,7 @@ export interface PrivacyContent {
 
 const en: PrivacyContent = {
   title: "Privacy policy",
-  lede: "What this site collects, why, who else sees it, how long it is kept, and how to make me delete it. Short version: nothing optional runs without your consent, and I never sell data.",
+  lede: "What this site collects, why, who else sees it, how long it is kept, and how to make me delete it. Short version: on the site, nothing optional runs without your consent; if I emailed you a security report about your store, that outreach is tracked under legitimate interest and you can stop it in one click. I never sell data.",
   updatedLabel: "Last updated",
   controllerAddress: "Postal address",
   hostingLabel: "Hosting",
@@ -113,6 +113,7 @@ const en: PrivacyContent = {
           rows: [
             ["locale", "bak-dev.com", "Remembers your language", "1 year", "Necessary"],
             ["consent", "bak-dev.com", "Remembers your cookie choice", "6 months", "Necessary"],
+            ["lid", "bak-dev.com", "Only if you followed a link in a security report I emailed you: links your visit to that outreach (see “Outreach emails” below)", "180 days", "Outreach"],
             ["_ga, _ga_*", "Google Analytics", "Tells visits apart for statistics", "13 months", "Analytics"],
             ["_clck, _clsk", "Microsoft Clarity", "Groups the pages of one visit for usage statistics", "1 year / 1 day", "Analytics"],
             ["_gcl_au", "Google Ads", "Links an enquiry to the ad that led to it", "90 days", "Advertising"],
@@ -126,6 +127,32 @@ const en: PrivacyContent = {
         {
           kind: "p",
           text: "If you refuse analytics and advertising, Google's tags still load in a restricted mode (Google Consent Mode): they set no cookies and send no identifiers, only a signal that a page was viewed without consent, which Google uses for aggregate statistics.",
+        },
+      ],
+    },
+    {
+      id: "outreach",
+      title: "Outreach emails and your store report",
+      blocks: [
+        {
+          kind: "p",
+          text: "If I found that your online store runs an out-of-date e-commerce platform, I may email you once with a short security report. That email, and the report, are tracked so I can tell genuine interest from an uninterested inbox and follow up accordingly:",
+        },
+        {
+          kind: "list",
+          items: [
+            "The email contains a small invisible image (a “pixel”) that records when it is opened. Opens are an unreliable signal — some mail apps pre-load images — so I treat them lightly.",
+            "The report link is personal to you. Opening it records the visit, and the report page is at an unguessable address, set to not be indexed by search engines.",
+            "Viewing the report sets a `lid` cookie that links the rest of your visit to this site (pages viewed, a booking, an enquiry) to that outreach, so I can see whether the report led anywhere. On the server I may also connect this to Google Analytics under a random identifier, never your name or email.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "The legal basis is my legitimate interest in business-to-business prospecting (Art. 6(1)(f)): the report concerns a security issue on your business's public store, and I contact you only about that. You can object at any time — the “stop these emails” link in the report, or in the email, removes your report and stops everything with one click, and I keep no copy of the report afterwards.",
+        },
+        {
+          kind: "p",
+          text: "Engagement with the outreach (opens, link clicks, report views, pages seen) is kept for 13 months and then deleted. If you never open the email or the report, nothing of the above is set in your browser.",
         },
       ],
     },
@@ -187,7 +214,7 @@ const en: PrivacyContent = {
 
 const fr: PrivacyContent = {
   title: "Politique de confidentialité",
-  lede: "Ce que ce site collecte, pourquoi, qui d'autre y a accès, combien de temps c'est conservé, et comment me demander de l'effacer. En bref : rien d'optionnel ne fonctionne sans votre accord, et je ne vends aucune donnée.",
+  lede: "Ce que ce site collecte, pourquoi, qui d'autre y a accès, combien de temps c'est conservé, et comment me demander de l'effacer. En bref : sur le site, rien d'optionnel ne fonctionne sans votre accord ; si je vous ai envoyé par e-mail un rapport de sécurité sur votre boutique, cette prise de contact est suivie au titre de l'intérêt légitime et vous pouvez l'arrêter en un clic. Je ne vends aucune donnée.",
   updatedLabel: "Dernière mise à jour",
   controllerAddress: "Adresse postale",
   hostingLabel: "Hébergement",
@@ -262,6 +289,7 @@ const fr: PrivacyContent = {
           rows: [
             ["locale", "bak-dev.com", "Mémorise votre langue", "1 an", "Nécessaire"],
             ["consent", "bak-dev.com", "Mémorise votre choix sur les cookies", "6 mois", "Nécessaire"],
+            ["lid", "bak-dev.com", "Uniquement si vous avez suivi un lien dans un rapport de sécurité que je vous ai envoyé : relie votre visite à cette prise de contact (voir « E-mails de prospection » ci-dessous)", "180 jours", "Prospection"],
             ["_ga, _ga_*", "Google Analytics", "Distingue les visites pour les statistiques", "13 mois", "Mesure d'audience"],
             ["_clck, _clsk", "Microsoft Clarity", "Regroupe les pages d'une visite pour les statistiques d'usage", "1 an / 1 jour", "Mesure d'audience"],
             ["_gcl_au", "Google Ads", "Relie une demande à l'annonce qui l'a amenée", "90 jours", "Publicité"],
@@ -275,6 +303,32 @@ const fr: PrivacyContent = {
         {
           kind: "p",
           text: "Si vous refusez la mesure d'audience et la publicité, les balises Google se chargent tout de même en mode restreint (Google Consent Mode) : elles ne déposent aucun cookie et n'envoient aucun identifiant, seulement un signal indiquant qu'une page a été vue sans consentement, que Google utilise pour des statistiques agrégées.",
+        },
+      ],
+    },
+    {
+      id: "outreach",
+      title: "E-mails de prospection et rapport sur votre boutique",
+      blocks: [
+        {
+          kind: "p",
+          text: "Si j'ai constaté que votre boutique en ligne tourne sur une plateforme e-commerce obsolète, il se peut que je vous écrive une fois avec un bref rapport de sécurité. Cet e-mail, et le rapport, sont suivis afin que je puisse distinguer un réel intérêt d'une boîte mail indifférente et relancer en conséquence :",
+        },
+        {
+          kind: "list",
+          items: [
+            "L'e-mail contient une petite image invisible (un « pixel ») qui enregistre son ouverture. Les ouvertures sont un signal peu fiable — certaines messageries préchargent les images — je les traite donc avec prudence.",
+            "Le lien du rapport vous est propre. Son ouverture enregistre la visite, et la page du rapport se trouve à une adresse non devinable, configurée pour ne pas être indexée par les moteurs de recherche.",
+            "Consulter le rapport dépose un cookie `lid` qui relie le reste de votre visite sur ce site (pages vues, réservation, demande) à cette prise de contact, afin de voir si le rapport a abouti. Côté serveur, je peux aussi le rattacher à Google Analytics sous un identifiant aléatoire, jamais votre nom ni votre e-mail.",
+          ],
+        },
+        {
+          kind: "p",
+          text: "La base légale est mon intérêt légitime à la prospection entre professionnels (art. 6(1)(f)) : le rapport porte sur un problème de sécurité de la boutique publique de votre entreprise, et je ne vous contacte qu'à ce sujet. Vous pouvez vous y opposer à tout moment — le lien « ne plus recevoir ces e-mails » dans le rapport, ou dans l'e-mail, supprime votre rapport et arrête tout en un clic, et je n'en garde ensuite aucune copie.",
+        },
+        {
+          kind: "p",
+          text: "L'engagement avec la prospection (ouvertures, clics, consultations du rapport, pages vues) est conservé 13 mois puis supprimé. Si vous n'ouvrez jamais l'e-mail ni le rapport, rien de ce qui précède n'est déposé dans votre navigateur.",
         },
       ],
     },
