@@ -40,8 +40,14 @@ export const TRACKING_GIF = Buffer.from(
  *
  * In development the default is fine; `.data/` is git-ignored.
  */
-const STORE =
+export const STORE =
   process.env.TRACKING_STORE?.trim() || join(process.cwd(), ".data", "opens.jsonl");
+
+/** A file or directory next to the opens store, so every tracking artefact shares
+ *  one `shared/`-backed location in production (see src/lib/leads.ts). */
+export function storeSibling(name: string): string {
+  return join(dirname(STORE), name);
+}
 
 if (process.env.NODE_ENV === "production" && !process.env.TRACKING_STORE?.trim()) {
   // Misconfiguration, not a transient fault — say so loudly, the way the contact
@@ -56,15 +62,16 @@ if (process.env.NODE_ENV === "production" && !process.env.TRACKING_STORE?.trim()
 // A token we mint is an opaque URL-safe string; anything else cannot be one of
 // ours. Rejecting the rest keeps a passer-by who hits the public pixel URL from
 // writing arbitrary keys into the log, and bounds the line length.
-const TOKEN_RE = /^[A-Za-z0-9._-]{1,128}$/;
+export const TOKEN_RE = /^[A-Za-z0-9._-]{1,128}$/;
 
 // The user-agent and forwarded-for are attacker-controlled and only ever
 // diagnostic (the readback returns neither). Bound them so a client cannot bloat
 // the file with a megabyte header on every hit.
-const MAX_UA = 512;
-const MAX_IP = 128;
+export const MAX_UA = 512;
+export const MAX_IP = 128;
 
 export type Open = { token: string; opened_at: string };
+export type OpenRecord = { token: string; opened_at: string; ua: string; ip: string };
 
 // mkdir is idempotent with { recursive: true }, but memoising it keeps the store
 // directory off the hot path after the first write. Reset on failure so a
@@ -145,6 +152,45 @@ export async function readOpens(): Promise<Open[]> {
   }
 
   return [...first].map(([token, opened_at]) => ({ token, opened_at }));
+}
+
+/**
+ * Every open line with its user-agent and address, at `opened_at >= since`.
+ *
+ * `readOpens` collapses to one open per token and drops the UA, which is enough
+ * for the legacy `/px/opens.json`. The engagement readback instead needs each
+ * individual open — its timing and UA are what let Career-OS tell a mail
+ * scanner's instant pre-fetch from a human open. A torn final line is skipped.
+ */
+export async function readAllOpens(since?: string): Promise<OpenRecord[]> {
+  let raw: string;
+  try {
+    raw = await readFile(STORE, "utf8");
+  } catch {
+    return [];
+  }
+
+  const out: OpenRecord[] = [];
+  for (const line of raw.split("\n")) {
+    if (!line) continue;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      continue;
+    }
+    if (!parsed || typeof parsed !== "object") continue;
+    const { token, opened_at, ua, ip } = parsed as Record<string, unknown>;
+    if (typeof token !== "string" || typeof opened_at !== "string") continue;
+    if (since && opened_at < since) continue;
+    out.push({
+      token,
+      opened_at,
+      ua: typeof ua === "string" ? ua : "",
+      ip: typeof ip === "string" ? ip : "",
+    });
+  }
+  return out;
 }
 
 /**

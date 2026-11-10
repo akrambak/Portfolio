@@ -271,30 +271,35 @@ curl -sS -X POST http://127.0.0.1:3100/api/contact \
 
 The route rate-limits to 5 submissions per IP per 10 minutes, held in process memory. That is correct only because PM2 runs a single fork (`exec_mode: "fork"`, `instances: 1`); clustering the app would silently make the limit per worker.
 
-## Email open tracking (`/px`)
+## Lead engagement tracking (`/px` + `/r`)
 
-Career-OS embeds a 1×1 pixel in each upgrade proposal. The two routes that back it live here, not in Career-OS, which never serves HTTP:
+Each Career-OS upgrade proposal carries an open pixel and a link to a personal report page. The routes that back it live here, not in Career-OS, which never serves HTTP:
 
 | Route | Served at | Does |
 | --- | --- | --- |
-| `src/app/px/o/[token]/route.ts` | `GET /px/o/<token>.gif` | returns the 42-byte transparent GIF and records the open |
-| `src/app/px/opens.json/route.ts` | `GET /px/opens.json` | returns `[{ token, opened_at }]` (first open per token), behind `Authorization: Bearer <TRACKING_API_KEY>` |
+| `src/app/px/o/[token]/route.ts` | `GET /px/o/<token>.gif` | the 42-byte GIF; records the open |
+| `src/app/px/opens.json/route.ts` | `GET /px/opens.json` | legacy opens readback, Bearer-gated |
+| `src/app/px/events.json/route.ts` | `GET /px/events.json?since=` | the engagement readback (beacons + opens), Bearer-gated |
+| `src/app/px/leads/route.ts` | `POST`/`DELETE /px/leads` | Career-OS pushes/retires a lead's report, Bearer-gated |
+| `src/app/px/e/route.ts` | `POST /px/e` | public beacon: report views, clicks, page views; sets the `lid` cookie |
+| `src/app/px/u/[lead]/route.ts` | `GET`/`POST /px/u/<lead>` | unsubscribe (confirm page + RFC 8058 one-click) |
+| `src/app/[locale]/r/[lead]/page.tsx` | `GET /r/<lead>`, `/fr/r/<lead>` | the personal report (noindex, no-referrer) |
 
-Both are thin wrappers over `src/lib/tracking.ts`, which owns the JSONL store. `/px` is excluded from the next-intl middleware (`src/middleware.ts`) exactly like `/api`, so it is never rewritten to a locale.
+`/px` is a thin layer over `src/lib/tracking.ts` and `src/lib/leads.ts`, which own the file store (`opens.jsonl`, `events.jsonl`, `leads/<key>.json`). `/px` is excluded from the next-intl middleware (`src/middleware.ts`) like `/api`; `/r` and `/px` are disallowed in `robots.ts`.
 
-**Apache needs no change.** The catch-all `/` → `127.0.0.1:3100` proxy already forwards `/px/*` to Node (it is not under the `/.well-known` exclusion).
+**Apache needs no change.** The catch-all `/` → `127.0.0.1:3100` proxy already forwards `/px/*` and `/r/*` to Node.
 
 **Set two values** in `shared/.env.production` (both documented in `.env.production.example`):
 
-- `TRACKING_API_KEY` — a long random secret, the same value Career-OS holds. Unset, the pixel still serves but `/px/opens.json` always 401s, so opens are never exposed by an unconfigured deploy.
-- `TRACKING_STORE` — **must** be a path under `shared/`, e.g. `/home/bak-dev/apps/portfolio/shared/data/opens.jsonl`. The default lands inside the release tree, which a later deploy prunes — silently losing every open. `shared/` survives deploys and rollbacks; the server creates the directory. In production the app logs a warning on startup if this is unset.
+- `TRACKING_API_KEY` — a long random secret, the same value Career-OS holds. Unset, the pixel still serves but every Bearer readback (`/px/opens.json`, `/px/events.json`, `/px/leads`) 401s, so nothing is exposed by an unconfigured deploy.
+- `TRACKING_STORE` — **must** be a path under `shared/`, e.g. `/home/bak-dev/apps/portfolio/shared/data/opens.jsonl`. `events.jsonl` and the `leads/` directory are written beside it. The default lands inside the release tree, which a later deploy prunes — silently losing the data. `shared/` survives deploys and rollbacks; the server creates the directory. In production the app logs a warning on startup if this is unset.
 
 Verify after deploy:
 
 ```bash
 curl -s https://bak-dev.com/px/o/deploycheck.gif | wc -c                     # -> 42
-curl -s -H "Authorization: Bearer $TRACKING_API_KEY" https://bak-dev.com/px/opens.json   # -> [...,{"token":"deploycheck",...}]
-curl -s -o /dev/null -w '%{http_code}\n' https://bak-dev.com/px/opens.json   # -> 401 (no bearer)
+curl -s -H "Authorization: Bearer $TRACKING_API_KEY" https://bak-dev.com/px/events.json   # -> [...]
+curl -s -o /dev/null -w '%{http_code}\n' https://bak-dev.com/px/events.json  # -> 401 (no bearer)
 ```
 
 `opens.jsonl` grows unbounded — one line per open, including Apple/Gmail prefetches. Truncate or rotate it periodically; it is append-only and nothing but the readback depends on its history. The pixel is a small deliverability cost, so re-run [mail-tester.com](https://www.mail-tester.com) after Career-OS starts sending with it enabled.

@@ -493,5 +493,32 @@
     "marketingTitle": "Publicité",
     "marketingBody": "Google Ads et Meta : mesurer si les annonces mènent à des demandes, et diffuser des annonces aux anciens visiteurs.",
     "learnMore": "Politique de confidentialité"
+  },
+  "report": {
+    "eyebrow": "Rapport de sécurité",
+    "lede": "Établi à partir de ce que {running} affiche publiquement — aucun test n'a été lancé sur votre boutique et rien n'a été consulté.",
+    "platform": "Plateforme",
+    "support": "Support de sécurité",
+    "supported": "Reçoit des correctifs",
+    "eol": "Fin de vie — plus de correctifs",
+    "phpEol": "PHP {version} — n'est plus maintenu",
+    "phpOk": "Maintenu",
+    "vulnTitle": "{count, plural, one {# faille connue} other {# failles connues}}",
+    "kev": "Activement exploitée",
+    "andMore": "+{n} autres non affichées ici",
+    "meansTitle": "Ce que cela signifie pour votre boutique",
+    "meansBody": "Une boutique en ligne sur une plateforme non corrigée est exactement ce que les attaquants recherchent : vol de cartes bancaires injecté dans le tunnel de commande, fuite de données clients — une violation RGPD à déclarer sous 72 h — et site signalé par Google ou par votre prestataire de paiement.",
+    "fixTitle": "Comment je la corrige",
+    "fix": {
+      "backup": "Sauvegarde complète et copie de préproduction d'abord — votre boutique en ligne n'est modifiée qu'après votre validation.",
+      "upgrade": "Mise à jour du cœur, avec mise en compatibilité des modules et du thème.",
+      "harden": "Durcissement de la sécurité, puis test complet du tunnel de commande, des paiements et des commandes."
+    },
+    "price": "Prix fixe, à partir de {price} € pour {platform}.",
+    "bookCall": "Réserver un appel gratuit de 15 min",
+    "getQuote": "Recevoir un devis ferme",
+    "quoteSubject": "Devis ferme — {domain}",
+    "ps": "Ce rapport repose uniquement sur ce que votre boutique affiche publiquement. S'il n'est pas pertinent, vous pouvez arrêter ces e-mails ci-dessous.",
+    "unsubscribe": "Ne plus recevoir ces e-mails"
   }
 }
